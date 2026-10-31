@@ -1,0 +1,179 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.compilePrompt = compilePrompt;
+const generative_ai_1 = require("@google/generative-ai");
+const config_js_1 = require("../config.js");
+const COMPILER_SYSTEM_PROMPT = `
+You are the PromptFlow AI Automation Compiler.
+Your mission is to translate ANY user natural language request into a reliable, executable 4-step micro-automation pipeline JSON.
+
+PromptFlow is a general-purpose, prompt-driven automation platform for everyday tasks:
+- Tracking product prices or discounts (e.g., "Alert me if this headphone drops below $100")
+- Monitoring job boards or internships (e.g., "Check this careers page for React internships")
+- Watching academic / university notice boards (e.g., "Check timetable releases")
+- Tech news & releases (e.g., "Monitor this blog for AI updates")
+- Government / exam / visa / event announcements
+
+SUPPORTED STEP TYPES (EXACTLY 4 TYPES):
+1. "scrape":
+   config: { "url": string, "max_length": number (default: 10000) }
+2. "ai_filter":
+   config: { "instruction": string, "expected_fields": string[] }
+   (expected_fields must always include sensible keys, e.g. ["found", "title", "price", "link"])
+3. "condition":
+   config: {
+     "field": string (e.g. "step_2.found" or "step_2.price"),
+     "operator": "==" | "!=" | ">" | "<" | ">=" | "<=" | "contains",
+     "value": string | number | boolean
+   }
+4. "notify":
+   config: {
+     "channel": "telegram" | "discord",
+     "message": string (must use {{step_2.field}} variable interpolation tokens)
+   }
+
+RULES:
+1. Always construct a complete 4-step pipeline: [scrape -> ai_filter -> condition -> notify].
+2. If essential info is missing (e.g., user said "Alert me when laptop drops below 50000" but gave no URL, OR gave a URL but didn't state what condition to check):
+   - Set status to "incomplete".
+   - Put null for the missing field in the config (e.g. url: null).
+   - In the "question" field, ask a friendly, concise clarification question to elicit the missing parameter.
+3. If enough info exists:
+   - Set status to "complete".
+   - Default schedule_cron to "0 9 * * *" (daily at 9 AM) if frequency wasn't mentioned.
+   - Default channel to "telegram" if not specified.
+4. Output MUST be valid JSON conforming to this schema:
+{
+  "status": "complete" | "incomplete",
+  "question": "Clarification question if incomplete, otherwise null",
+  "pipeline": {
+    "title": "Short descriptive title",
+    "description": "What this automation does",
+    "schedule_cron": "0 9 * * *",
+    "steps": [
+      { "step_id": 1, "type": "scrape", "config": { ... } },
+      { "step_id": 2, "type": "ai_filter", "config": { ... } },
+      { "step_id": 3, "type": "condition", "config": { ... } },
+      { "step_id": 4, "type": "notify", "config": { ... } }
+    ]
+  }
+}
+`;
+/**
+ * Compiles a natural language user prompt into an executable pipeline JSON.
+ * Supports multi-turn conversational context via chatHistory.
+ */
+async function compilePrompt(prompt, chatHistory = []) {
+    const apiKey = config_js_1.config.GEMINI_API_KEY;
+    if (!apiKey) {
+        // Provide a mocked compiler fallback if API key is not yet set up
+        console.warn("[COMPILER FALLBACK] GEMINI_API_KEY not set. Using smart heuristic mock.");
+        return mockCompile(prompt);
+    }
+    const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({
+        model: "gemini-1.5-flash",
+        systemInstruction: COMPILER_SYSTEM_PROMPT,
+        generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.2,
+        },
+    });
+    // Construct Gemini multi-turn chat history format
+    const formattedHistory = chatHistory.map((msg) => ({
+        role: msg.role === "user" ? "user" : "model",
+        parts: [{ text: msg.content }],
+    }));
+    const chat = model.startChat({
+        history: formattedHistory,
+    });
+    const response = await chat.sendMessage(prompt);
+    const rawText = response.response.text().trim();
+    try {
+        const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+        const parsed = JSON.parse(sanitized);
+        return parsed;
+    }
+    catch (err) {
+        throw new Error(`Failed to parse Gemini compiler output: ${err.message}. Raw output: ${rawText.substring(0, 200)}`);
+    }
+}
+/**
+ * Smart heuristic fallback for offline development/testing
+ */
+function mockCompile(prompt) {
+    const urlMatch = prompt.match(/https?:\/\/[^\s]+/i);
+    const hasUrl = Boolean(urlMatch);
+    const detectedUrl = urlMatch ? urlMatch[0] : null;
+    if (!hasUrl) {
+        return {
+            status: "incomplete",
+            question: "I've drafted your automation! Which website URL would you like me to monitor?",
+            pipeline: {
+                title: "Web Monitor Alert",
+                description: "Monitors website and notifies user",
+                schedule_cron: "0 9 * * *",
+                steps: [
+                    { step_id: 1, type: "scrape", config: { url: null, max_length: 10000 } },
+                    {
+                        step_id: 2,
+                        type: "ai_filter",
+                        config: {
+                            instruction: "Scan the webpage text for the requested condition.",
+                            expected_fields: ["found", "title", "details"],
+                        },
+                    },
+                    {
+                        step_id: 3,
+                        type: "condition",
+                        config: { field: "step_2.found", operator: "==", value: true },
+                    },
+                    {
+                        step_id: 4,
+                        type: "notify",
+                        config: {
+                            channel: "telegram",
+                            message: "🚨 PromptFlow Alert: {{step_2.title}}\nDetails: {{step_2.details}}",
+                        },
+                    },
+                ],
+            },
+        };
+    }
+    return {
+        status: "complete",
+        pipeline: {
+            title: "Daily Web Alert",
+            description: `Monitors ${detectedUrl} daily for updates`,
+            schedule_cron: "0 9 * * *",
+            steps: [
+                {
+                    step_id: 1,
+                    type: "scrape",
+                    config: { url: detectedUrl, max_length: 10000 },
+                },
+                {
+                    step_id: 2,
+                    type: "ai_filter",
+                    config: {
+                        instruction: "Extract the latest updates matching the user goal.",
+                        expected_fields: ["found", "title", "link"],
+                    },
+                },
+                {
+                    step_id: 3,
+                    type: "condition",
+                    config: { field: "step_2.found", operator: "==", value: true },
+                },
+                {
+                    step_id: 4,
+                    type: "notify",
+                    config: {
+                        channel: "telegram",
+                        message: "🚨 Update Detected: {{step_2.title}}\nLink: {{step_2.link}}",
+                    },
+                },
+            ],
+        },
+    };
+}
