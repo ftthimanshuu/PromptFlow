@@ -80,16 +80,44 @@ export interface ScrapeResult {
 export async function scrapeWebsite(config: ScrapeConfig): Promise<ScrapeResult> {
   await validateSafeUrl(config.url);
 
-  const response = await axios.get(config.url, {
-    timeout: 10000, // 10 second safety timeout
-    headers: {
-      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-      "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-      "Accept-Language": "en-US,en;q=0.9",
-      "Upgrade-Insecure-Requests": "1",
-    },
-    maxContentLength: 5 * 1024 * 1024, // Max 5MB raw HTML
-  });
+  let response;
+  try {
+    response = await axios.get(config.url, {
+      timeout: 10000, // 10 second safety timeout
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Upgrade-Insecure-Requests": "1",
+      },
+      maxContentLength: 5 * 1024 * 1024, // Max 5MB raw HTML
+    });
+  } catch (err: any) {
+    if (axios.isAxiosError(err)) {
+      const status = err.response?.status;
+      if (status === 403 || status === 401 || status === 429) {
+        throw new Error(
+          `The scraper cannot access this website due to anti-bot protection or access restrictions (HTTP ${status}). Please try an alternate website or public source.`
+        );
+      }
+      if (status === 404) {
+        throw new Error(
+          `The target page was not found (HTTP 404). Please verify that the URL is correct.`
+        );
+      }
+      if (status && status >= 500) {
+        throw new Error(
+          `The target website's server encountered an internal error (HTTP ${status}). Please try an alternate source.`
+        );
+      }
+      if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+        throw new Error(
+          `The connection timed out while loading the website. The server may be unresponsive or blocking automated connections. Please try an alternate site.`
+        );
+      }
+    }
+    throw err;
+  }
 
   const html = response.data;
   const $ = cheerio.load(html);

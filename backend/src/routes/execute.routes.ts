@@ -11,6 +11,7 @@ const TestExecuteRequestSchema = z.object({
     .object({
       telegram_chat_id: z.string().nullable().optional(),
       discord_webhook_url: z.string().nullable().optional(),
+      email: z.string().nullable().optional(),
     })
     .optional(),
 });
@@ -45,3 +46,4 @@ router.post("/test", async (req: Request, res: Response): Promise<void> => {
 });
 
 export default router;
+

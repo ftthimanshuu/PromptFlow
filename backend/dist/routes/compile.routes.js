@@ -1,14 +1,12 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const zod_1 = require("zod");
-const compiler_js_1 = require("../core/compiler.js");
-const supabase_js_1 = require("../db/supabase.js");
-const router = (0, express_1.Router)();
-const CompileRequestSchema = zod_1.z.object({
-    prompt: zod_1.z.string().min(1, "Prompt cannot be empty"),
-    session_id: zod_1.z.string().uuid().optional(),
-    user_id: zod_1.z.string().uuid().optional(),
+import { Router } from "express";
+import { z } from "zod";
+import { compilePrompt } from "../core/compiler.js";
+import { getSupabaseAdmin } from "../db/supabase.js";
+const router = Router();
+const CompileRequestSchema = z.object({
+    prompt: z.string().min(1, "Prompt cannot be empty"),
+    session_id: z.string().uuid().optional(),
+    user_id: z.string().uuid().optional(),
 });
 router.post("/", async (req, res) => {
     const parseResult = CompileRequestSchema.safeParse(req.body);
@@ -21,7 +19,7 @@ router.post("/", async (req, res) => {
     }
     const { prompt, session_id, user_id } = parseResult.data;
     let history = [];
-    const supabase = (0, supabase_js_1.getSupabaseAdmin)();
+    const supabase = getSupabaseAdmin();
     // If session_id and user_id are supplied, retrieve multi-turn conversation memory
     if (session_id && user_id) {
         try {
@@ -43,7 +41,7 @@ router.post("/", async (req, res) => {
         }
     }
     try {
-        const compileResult = await (0, compiler_js_1.compilePrompt)(prompt, history);
+        const compileResult = await compilePrompt(prompt, history);
         // Save user prompt & assistant response to chat_history
         if (session_id && user_id) {
             try {
@@ -69,4 +67,4 @@ router.post("/", async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

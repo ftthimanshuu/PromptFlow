@@ -1,71 +1,133 @@
 # PromptFlow ⚡
-### A Prompt-Driven Autonomous Micro-Automation and Real-Time Web-Monitoring Platform
+### Autonomous Prompt-Driven Web Monitoring & Micro-Automation Engine
 
-> **Major Project / Academic Capstone Edition**  
-> Built with: **React 18 (Vite) + Tailwind CSS** (Frontend) • **Node.js + Express + TypeScript** (Backend) • **Supabase** (PostgreSQL 15, Auth, JSONB, Realtime) • **Google Gemini Flash** (AI Compiler & Semantic Extractor) • **100% Free-Tier Architecture (₹0 Budget)**
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![React 18](https://img.shields.io/badge/React-18.3-61DAFB?logo=react)](https://react.dev/)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=node.js)](https://nodejs.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%2015-3ECF8E?logo=supabase)](https://supabase.com/)
+[![Groq](https://img.shields.io/badge/Groq-Llama%203.3%2070B-f55036)](https://groq.com/)
+[![Gemini](https://img.shields.io/badge/Google-Gemini%20Flash-4285F4?logo=google)](https://aistudio.google.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
----
-
-## 🌟 Overview & Core Value Proposition
-
-PromptFlow replaces traditional, brittle CSS web-scrapers and complex 2D node graphs (Zapier, Make.com, n8n) with an **AI-first conversational micro-automation platform**.
-
-Instead of manually picking DOM selectors, writing regex, or configuring webhooks:
-1. **Natural Language Compilation**: Describe any day-to-day automation in plain English (price watchers, university notice monitors, job/internship boards, tech release alerts).
-2. **Deterministic 4-Step Pipeline DSL**: Compiled into a linear, validated Domain-Specific Language (`scrape` $\rightarrow$ `ai_filter` $\rightarrow$ `condition` $\rightarrow$ `notify`).
-3. **Conversational Slot-Filling**: If a prompt is missing details (e.g. product URL or price threshold), PromptFlow drafts the pipeline, flags the card with `⚠️ Missing Details`, and asks a friendly clarification question.
-4. **Interactive Studio & Live Pulse**: Step cards pulse live yellow/green during dry-run sandbox testing with step-level telemetry.
-5. **Resource & Security Governance**: Built-in SSRF defense (blocking private subnets and loopback addresses) and database-level quota enforcement of up to **5 active automations per account**.
+> **PromptFlow** eliminates the fragility of CSS-selector web scrapers and the complexity of 2D node graphs (Zapier, Make, n8n). Simply describe what you want to monitor in plain English; PromptFlow compiles your prompt into a deterministic 4-step pipeline DSL, runs on an autonomous background cron schedule, and dispatches rich push alerts to **Telegram**, **Discord**, or **Email**.
 
 ---
 
-## 🏗️ System Architecture
+## 🌟 Key Highlights & Capabilities
+
+* **Natural Language Compiler:** Turns plain English requests into a strict 4-step execution DSL (`scrape` $\rightarrow$ `ai_filter` $\rightarrow$ `condition` $\rightarrow$ `notify`).
+* **Multi-Turn Slot-Filling:** If a prompt lacks essential parameters (e.g. missing product URL or threshold), the AI drafts what it can and asks a friendly clarification question without dropping context.
+* **Hybrid LLM Architecture:** Ultra-fast sub-second extraction powered by **Groq Llama 3.3 70B** with seamless fallback to **Google Gemini 3.5 Flash**.
+* **Stealth Scraper with SSRF Firewall:** Modern browser header spoofing bypasses standard WAF blocks while pre-socket DNS inspection blocks internal subnets, loopbacks (`127.0.0.1`), and AWS metadata endpoints (`169.254.169.254`).
+* **Deterministic Logic Engine:** Type-safe condition evaluations (`==`, `!=`, `>`, `<`, `>=`, `<=`, `contains`) with automatic currency stripping (`£51.77` $\rightarrow$ `51.77`).
+* **Multi-Channel Push Alerts:**
+  * ✈️ **Telegram Bot:** Direct push messages with HTML formatting.
+  * 💬 **Discord Webhooks:** Rich visual embeds with color-coded sidebars and timestamps.
+  * 📧 **Email (SMTP / Gmail):** Responsive dark-themed HTML emails with formatted bullet points.
+* **Fair Resource Governance:** Supabase database triggers strictly enforce **5 active automations per user account**.
+* **Modern Studio & Dashboard:** Built on Tailwind CSS and UI-UX-Pro-Max design patterns with Linear/Raycast OLED dark aesthetic, live pipeline visualizer, step drawers, and real-time execution logs.
+
+---
+
+## 🏗️ Architecture Overview
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                        FRONTEND CLIENT (SPA)                           │
-│  React 18 (Vite) + Tailwind CSS + Lucide Icons                         │
+│                        PROMPTFLOW FRONTEND (Vite + React)              │
 │                                                                        │
-│  ┌──────────────────────────────┐    ┌──────────────────────────────┐  │
-│  │ Conversational Chat Panel    │    │ Linear Pipeline Visualizer   │  │
-│  │ (Multi-turn session memory)  │    │ (Live pulsing status cards)  │  │
-│  └──────────────┬───────────────┘    └──────────────▲───────────────┘  │
-│                 │                                   │                  │
-└─────────────────┼───────────────────────────────────┼──────────────────┘
-                  │ HTTPS REST                        │ Realtime sync
-                  ▼                                   │
-┌─────────────────────────────────────────────────────┴──────────────────┐
-│                     SUPABASE CLOUD PLATFORM                            │
+│   ┌───────────────────────────┐     ┌──────────────────────────────┐   │
+│   │   AI Automation Studio    │     │      My Automations Hub      │   │
+│   │ (Conversational Compiler) │     │ (5/5 Quota Meter & Run Logs) │   │
+│   └─────────────┬─────────────┘     └──────────────▲───────────────┘   │
+└─────────────────┼──────────────────────────────────┼───────────────────┘
+                  │ REST API                         │ RLS Realtime Sync
+                  ▼                                  │
+┌────────────────────────────────────────────────────┴───────────────────┐
+│                      SUPABASE CLOUD PLATFORM                           │
 │                                                                        │
-│  • Supabase Auth: User identity & JWT verification                     │
-│  • PostgreSQL DB: JSONB pipeline definitions, run logs, chat history   │
-│  • Row-Level Security (RLS): Strict tenant isolation per user_id       │
-│  • Quota Trigger: Max 5 active automations per account                 │
+│   • Supabase Auth: Email/Password + One-Click Google OAuth             │
+│   • PostgreSQL: Strict tenant isolation via Row-Level Security (RLS)   │
+│   • Trigger Enforcer: BEFORE INSERT/UPDATE restricts active slots <= 5 │
+│   • Profiles Table: Stores Telegram Chat ID & Discord Webhook URL      │
 └─────────────────┬──────────────────────────────────────────────────────┘
-                  │ REST
+                  │ Service Key
                   ▼
 ┌────────────────────────────────────────────────────────────────────────┐
 │               NODE.JS + EXPRESS BACKEND ENGINE (TypeScript)            │
 │                                                                        │
-│  1. Prompt Compiler: Gemini Flash + Multi-turn memory                  │
-│  2. Web Scraper: Axios + Cheerio with strict SSRF defense              │
-│  3. Semantic AI Extractor: Gemini structured key extraction            │
-│  4. Evaluator: Safe deterministic operators (==, !=, >, <, contains)   │
-│  5. Template Engine: Dynamic {{step_X.field}} variable interpolation   │
-│  6. Background Scheduler: node-cron daemon                             │
-│  7. Alert Dispatcher: Telegram Bot API & Discord Webhook client        │
+│   1. Compiler Engine: Natural language -> 4-step validated DSL        │
+│   2. Stealth Scraper: Axios + Cheerio with pre-socket SSRF defense    │
+│   3. Semantic AI Extractor: Groq Llama 3.3 70B / Gemini Flash JSON    │
+│   4. Deterministic Evaluator: Safe type-coerced condition engine      │
+│   5. Template Interpolator: {{step_X.field}} with clean bullet lists  │
+│   6. Scheduler Daemon: node-cron background task manager              │
+│   7. Notification Dispatcher: Telegram Bot, Discord, & Nodemailer     │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🚀 Quickstart Guide
+## 📋 The 4-Step Pipeline DSL
 
-### Prerequisites
-- Node.js v18+ (tested on Node v24)
-- npm v10+
+Every automation is compiled into a lightweight, declarative JSON schema:
 
-### 1. Backend Setup
+```json
+{
+  "title": "Daily Exam Timetable Watcher",
+  "description": "Monitors university notices for 7th-sem schedules",
+  "schedule_cron": "0 9 * * *",
+  "steps": [
+    {
+      "step_id": 1,
+      "type": "scrape",
+      "config": {
+        "url": "https://www.rgpv.ac.in",
+        "max_length": 5000
+      }
+    },
+    {
+      "step_id": 2,
+      "type": "ai_filter",
+      "config": {
+        "instruction": "Scan page for 7th sem timetable notices. Return found and title.",
+        "expected_fields": ["found", "title"]
+      }
+    },
+    {
+      "step_id": 3,
+      "type": "condition",
+      "config": {
+        "field": "step_2.found",
+        "operator": "==",
+        "value": true
+      }
+    },
+    {
+      "step_id": 4,
+      "type": "notify",
+      "config": {
+        "channel": "telegram",
+        "message": "🚨 Exam Schedule Released: {{step_2.title}}"
+      }
+    }
+  ]
+}
+```
+
+---
+
+## ⚡ Quickstart Guide
+
+### 1. Prerequisites
+- **Node.js** v18+ (tested on v20 & v24)
+- **npm** v10+
+- A free **Supabase** account ([supabase.com](https://supabase.com))
+- Free API keys from **Groq** ([console.groq.com](https://console.groq.com)) or **Google AI Studio** ([aistudio.google.com](https://aistudio.google.com))
+
+---
+
+### 2. Backend Setup
+
 ```bash
 cd backend
 npm install
@@ -73,44 +135,121 @@ npm install
 # Copy environment template
 cp .env.example .env
 ```
-Configure your keys in `backend/.env`:
-- `GEMINI_API_KEY`: Get free API key from [Google AI Studio](https://aistudio.google.com/)
-- `SUPABASE_URL` & `SUPABASE_SERVICE_ROLE_KEY`: From your free [Supabase](https://supabase.com/) project
-- `TELEGRAM_BOT_TOKEN`: (Optional) From `@BotFather` on Telegram
 
-Run backend tests:
-```bash
-npm test
-# Or run complete end-to-end suite:
-npx tsx verify-e2e.ts
+Configure `backend/.env`:
+```env
+PORT=5000
+NODE_ENV=development
+
+# Supabase Credentials
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+SUPABASE_ANON_KEY=your-anon-key
+
+# LLM Engines (at least one recommended)
+GROQ_API_KEY=gsk_your_groq_api_key
+GEMINI_API_KEY=your_gemini_api_key
+
+# Telegram Alerts (Optional)
+TELEGRAM_BOT_TOKEN=your_bot_token_from_botfather
+
+# Email Dispatcher via SMTP (Optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-16-char-app-password
 ```
 
-Start backend development server:
+Compile and start the backend:
 ```bash
+npm run build
 npm run dev
-# Running on http://localhost:5000
+# Server running at http://localhost:5000
 ```
 
-### 2. Frontend Setup
+---
+
+### 3. Frontend Setup
+
 ```bash
 cd frontend
 npm install
 
-# Start Vite React development server:
-npm run dev
-# Running on http://localhost:5173
+# Copy environment template
+cp .env.example .env
 ```
 
-### 3. Database Setup (Supabase)
-In your Supabase project's SQL Editor, execute the migration scripts in order:
-1. `supabase/migrations/01_initial_schema.sql` (Tables & RLS)
-2. `supabase/migrations/02_auth_trigger.sql` (Auto-creates profile on signup)
-3. `supabase/migrations/03_quota_trigger.sql` (Enforces 5-automation account limit)
+Configure `frontend/.env`:
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+Start the Vite development server:
+```bash
+npm run dev
+# Client running at http://localhost:5173
+```
 
 ---
 
-## 🛡️ Security & Reliability Engineering
-- **SSRF Defense**: Target hostnames are resolved through DNS prior to socket connection, blocking `localhost`, `127.0.0.1`, RFC 1918 subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), and AWS metadata (`169.254.169.254`).
-- **Quota Enforcer**: PostgreSQL `BEFORE INSERT OR UPDATE` trigger prevents account abuse.
-- **Graceful Short-Circuiting**: If a condition fails, the pipeline transitions to `SKIPPED` status and halts without sending spam alerts.
-- **Fail-Safe Offline Mode**: Includes mock fallbacks so the application runs seamlessly even before API keys are connected.
+### 4. Database Migrations (Supabase)
+
+Run the SQL migration scripts in your **Supabase Dashboard $\rightarrow$ SQL Editor** in order:
+1. `supabase/migrations/01_initial_schema.sql` — Profiles, automations, execution logs, and RLS policies.
+2. `supabase/migrations/02_auth_trigger.sql` — Automatic profile provisioning upon Supabase signup.
+3. `supabase/migrations/03_quota_trigger.sql` — Enforces the 5 active automation limit per account.
+4. `supabase/migrations/04_user_profile_metadata.sql` — Syncs Telegram Chat ID, Discord Webhook, and display name into profiles.
+
+---
+
+## 🧪 Comprehensive Automated Test Suite
+
+PromptFlow includes a complete automated test runner testing all 10 core execution branches:
+
+```bash
+# Run the test suite from root
+node backend/test.js
+```
+
+```text
+================================================================================
+📊 PROMPTFLOW COMPREHENSIVE AUTOMATION TEST RESULTS
+================================================================================
+Total Automation Types Tested: 10
+Passed: 10
+Failed: 0
+Success Rate: 100%
+
+┌─────────┬────┬────────────────────┬─────────────────────────────────────────────────┬────────┐
+│ (index) │ #  │ Category           │ Test                                            │ Status │
+├─────────┼────┼────────────────────┼─────────────────────────────────────────────────┼────────┤
+│ 0       │ 1  │ 'Numeric Watcher'  │ 'E-Commerce Price Drop (< 60) Triggered Succes' │ 'PASS' │
+│ 1       │ 2  │ 'Condition Logic'  │ 'Negative Threshold Gracefully Short-Circuits ' │ 'PASS' │
+│ 2       │ 3  │ 'Market Monitor'   │ 'Commodity Live Price Extraction & Threshold T' │ 'PASS' │
+│ 3       │ 4  │ 'Content Monitor'  │ 'Semantic Topic Matching on Live Wikipedia Eve' │ 'PASS' │
+│ 4       │ 5  │ 'Operator Engine'  │ "Case-Insensitive 'contains' Operator Validati" │ 'PASS' │
+│ 5       │ 6  │ 'Template Engine'  │ 'Multi-Variable Dynamic Token Replacement ({{s' │ 'PASS' │
+│ 6       │ 7  │ 'AI Compiler'      │ 'Translating Natural Language to 4-Step Valida' │ 'PASS' │
+│ 7       │ 8  │ 'Slot-Filling'     │ 'Automatic Detection of Missing Parameters & C' │ 'PASS' │
+│ 8       │ 9  │ 'Security / SSRF'  │ 'Pre-Socket DNS Inspection Blocking Localhost ' │ 'PASS' │
+│ 9       │ 10 │ 'Alert Dispatcher' │ 'Telegram Bot API Live Delivery to Mobile Devi' │ 'PASS' │
+└─────────┴────┴────────────────────┴─────────────────────────────────────────────────┴────────┘
+🎉 ALL 10 AUTOMATION TYPES VERIFIED SUCCESSFULLY!
+```
+
+---
+
+## 🛡️ Security & Reliability Architecture
+
+* **Pre-Socket SSRF Firewall:** Uses Node.js `dns/promises` to resolve hostnames before dispatching network sockets. Explicitly rejects `localhost`, `127.0.0.0/8`, private subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), and cloud link-local addresses (`169.254.169.254`).
+* **Graceful Short-Circuiting:** When a condition evaluates to `false`, the pipeline immediately halts with a `SKIPPED` status, avoiding unnecessary notification spam.
+* **Defensive Error Handling:** HTTP 403 / Cloudflare WAF challenges are translated into clean, human-actionable instructions.
+* **Offline Mock Fallbacks:** If remote LLM providers experience rate-limiting or outages, PromptFlow fails over gracefully to deterministic mock heuristics so testing is never blocked.
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See `LICENSE` for more information.

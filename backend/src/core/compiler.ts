@@ -40,7 +40,7 @@ SUPPORTED STEP TYPES (EXACTLY 4 TYPES):
    }
 4. "notify":
    config: {
-     "channel": "telegram" | "discord",
+     "channel": "telegram" | "discord" | "email",
      "message": string (must use {{step_2.field}} variable interpolation tokens)
    }
 
@@ -53,7 +53,7 @@ RULES:
 3. If enough info exists:
    - Set status to "complete".
    - Default schedule_cron to "0 9 * * *" (daily at 9 AM) if frequency wasn't mentioned.
-   - Default channel to "telegram" if not specified.
+   - Default channel to "telegram" if not specified, or "discord" if Discord is mentioned, or "email" if email/mail/inbox is mentioned.
 4. MULTI-TURN MEMORY INTEGRATION:
    - When the user supplies a missing value in a follow-up turn (e.g., providing a URL, threshold, or keyword), you MUST MERGE it with the goals stated in previous conversation turns.
    - For example: If turn 1 asked "Alert me if gold drops below 75000" and turn 2 provides "https://goldprice.org", the compiled pipeline MUST have url: "https://goldprice.org" AND condition: { field: "step_2.price", operator: "<", value: 75000 }. Never drop parameters from prior turns.

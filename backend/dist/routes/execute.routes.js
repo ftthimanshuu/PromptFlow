@@ -1,16 +1,15 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const zod_1 = require("zod");
-const executor_js_1 = require("../core/executor.js");
-const dsl_js_1 = require("../types/dsl.js");
-const router = (0, express_1.Router)();
-const TestExecuteRequestSchema = zod_1.z.object({
-    pipeline: dsl_js_1.PipelineSpecificationSchema,
-    user_destinations: zod_1.z
+import { Router } from "express";
+import { z } from "zod";
+import { executePipeline } from "../core/executor.js";
+import { PipelineSpecificationSchema } from "../types/dsl.js";
+const router = Router();
+const TestExecuteRequestSchema = z.object({
+    pipeline: PipelineSpecificationSchema,
+    user_destinations: z
         .object({
-        telegram_chat_id: zod_1.z.string().nullable().optional(),
-        discord_webhook_url: zod_1.z.string().nullable().optional(),
+        telegram_chat_id: z.string().nullable().optional(),
+        discord_webhook_url: z.string().nullable().optional(),
+        email: z.string().nullable().optional(),
     })
         .optional(),
 });
@@ -25,7 +24,7 @@ router.post("/test", async (req, res) => {
     }
     const { pipeline, user_destinations } = parseResult.data;
     try {
-        const report = await (0, executor_js_1.executePipeline)(pipeline, {
+        const report = await executePipeline(pipeline, {
             userDestinations: user_destinations,
             isTestRun: true,
         });
@@ -39,4 +38,4 @@ router.post("/test", async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

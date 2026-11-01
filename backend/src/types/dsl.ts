@@ -34,7 +34,7 @@ export const ConditionConfigSchema = z.object({
 });
 export type ConditionConfig = z.infer<typeof ConditionConfigSchema>;
 
-export const NotifyChannelSchema = z.enum(["telegram", "discord"]);
+export const NotifyChannelSchema = z.enum(["telegram", "discord", "email"]);
 export type NotifyChannel = z.infer<typeof NotifyChannelSchema>;
 
 export const NotifyConfigSchema = z.object({
@@ -95,3 +95,4 @@ export interface PipelineExecutionReport {
 }
 
 export type ExecutionContext = Record<string, Record<string, unknown>>;
+

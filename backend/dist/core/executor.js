@@ -1,17 +1,14 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.executePipeline = executePipeline;
-const evaluator_js_1 = require("./evaluator.js");
-const extractor_js_1 = require("./extractor.js");
-const notifier_js_1 = require("./notifier.js");
-const scraper_js_1 = require("./scraper.js");
-const template_js_1 = require("./template.js");
-const supabase_js_1 = require("../db/supabase.js");
+import { evaluateCondition } from "./evaluator.js";
+import { extractWithAI } from "./extractor.js";
+import { dispatchNotification } from "./notifier.js";
+import { scrapeWebsite } from "./scraper.js";
+import { interpolateTemplate } from "./template.js";
+import { getSupabaseAdmin } from "../db/supabase.js";
 /**
  * Orchestrates linear execution of a pipeline DSL.
  * Coordinates: Scrape -> AI Filter -> Condition -> Notify.
  */
-async function executePipeline(pipeline, options = {}) {
+export async function executePipeline(pipeline, options = {}) {
     const startedAt = new Date().toISOString();
     const startTime = Date.now();
     const stepResults = [];
@@ -23,7 +20,7 @@ async function executePipeline(pipeline, options = {}) {
         const stepKey = `step_${step.step_id}`;
         try {
             if (step.type === "scrape") {
-                const scrapeOutput = await (0, scraper_js_1.scrapeWebsite)(step.config);
+                const scrapeOutput = await scrapeWebsite(step.config);
                 executionContext[stepKey] = scrapeOutput;
                 stepResults.push({
                     step_id: step.step_id,
@@ -50,7 +47,7 @@ async function executePipeline(pipeline, options = {}) {
                 if (!scrapedText) {
                     throw new Error("Cannot execute ai_filter: No preceding scraped text available in execution context.");
                 }
-                const extracted = await (0, extractor_js_1.extractWithAI)(step.config, scrapedText);
+                const extracted = await extractWithAI(step.config, scrapedText);
                 executionContext[stepKey] = extracted;
                 stepResults.push({
                     step_id: step.step_id,
@@ -61,7 +58,7 @@ async function executePipeline(pipeline, options = {}) {
                 });
             }
             else if (step.type === "condition") {
-                const evalResult = (0, evaluator_js_1.evaluateCondition)(step.config, executionContext);
+                const evalResult = evaluateCondition(step.config, executionContext);
                 executionContext[stepKey] = evalResult;
                 if (!evalResult.passed) {
                     // Condition failed: Pipeline short-circuits gracefully with SKIPPED status
@@ -87,9 +84,9 @@ async function executePipeline(pipeline, options = {}) {
                 });
             }
             else if (step.type === "notify") {
-                const resolvedMessage = (0, template_js_1.interpolateTemplate)(step.config.message, executionContext);
+                const resolvedMessage = interpolateTemplate(step.config.message, executionContext);
                 const destinations = options.userDestinations || {};
-                const notifyResult = await (0, notifier_js_1.dispatchNotification)(step.config, resolvedMessage, destinations);
+                const notifyResult = await dispatchNotification(step.config, resolvedMessage, destinations);
                 executionContext[stepKey] = notifyResult;
                 if (!notifyResult.sent && !options.isTestRun) {
                     throw new Error(notifyResult.error || "Notification dispatch failed.");
@@ -131,7 +128,7 @@ async function executePipeline(pipeline, options = {}) {
     // If this was an automated run with an automation_id, log to Supabase
     if (options.automation_id && !options.isTestRun) {
         try {
-            const supabase = (0, supabase_js_1.getSupabaseAdmin)();
+            const supabase = getSupabaseAdmin();
             await supabase.from("execution_logs").insert({
                 automation_id: options.automation_id,
                 status: report.status,

@@ -1,47 +1,7 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.validateSafeUrl = validateSafeUrl;
-exports.scrapeWebsite = scrapeWebsite;
-const axios_1 = __importDefault(require("axios"));
-const cheerio = __importStar(require("cheerio"));
-const promises_1 = __importDefault(require("dns/promises"));
-const url_1 = require("url");
+import axios from "axios";
+import * as cheerio from "cheerio";
+import dns from "dns/promises";
+import { URL } from "url";
 /**
  * Checks whether an IP address belongs to private/internal/loopback ranges.
  * Defends against Server-Side Request Forgery (SSRF).
@@ -78,8 +38,8 @@ function isPrivateIp(ip) {
 /**
  * Validates the target URL and enforces SSRF security boundaries.
  */
-async function validateSafeUrl(targetUrl) {
-    const parsed = new url_1.URL(targetUrl);
+export async function validateSafeUrl(targetUrl) {
+    const parsed = new URL(targetUrl);
     // Protocol whitelist: only HTTP and HTTPS
     if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
         throw new Error(`Forbidden protocol: "${parsed.protocol}". Only HTTP and HTTPS are permitted.`);
@@ -91,7 +51,7 @@ async function validateSafeUrl(targetUrl) {
     }
     // Resolve DNS to IP to verify it's not a private subnet
     try {
-        const lookup = await promises_1.default.lookup(hostname);
+        const lookup = await dns.lookup(hostname);
         if (isPrivateIp(lookup.address)) {
             throw new Error(`SSRF Prevention: Host "${hostname}" resolves to private address "${lookup.address}".`);
         }
@@ -105,17 +65,39 @@ async function validateSafeUrl(targetUrl) {
 /**
  * Asynchronously scrapes website text, strips layout fluff, and normalizes text.
  */
-async function scrapeWebsite(config) {
+export async function scrapeWebsite(config) {
     await validateSafeUrl(config.url);
-    const response = await axios_1.default.get(config.url, {
-        timeout: 10000, // 10 second safety timeout
-        headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 PromptFlow/1.0",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9",
-        },
-        maxContentLength: 5 * 1024 * 1024, // Max 5MB raw HTML
-    });
+    let response;
+    try {
+        response = await axios.get(config.url, {
+            timeout: 10000, // 10 second safety timeout
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Upgrade-Insecure-Requests": "1",
+            },
+            maxContentLength: 5 * 1024 * 1024, // Max 5MB raw HTML
+        });
+    }
+    catch (err) {
+        if (axios.isAxiosError(err)) {
+            const status = err.response?.status;
+            if (status === 403 || status === 401 || status === 429) {
+                throw new Error(`The scraper cannot access this website due to anti-bot protection or access restrictions (HTTP ${status}). Please try an alternate website or public source.`);
+            }
+            if (status === 404) {
+                throw new Error(`The target page was not found (HTTP 404). Please verify that the URL is correct.`);
+            }
+            if (status && status >= 500) {
+                throw new Error(`The target website's server encountered an internal error (HTTP ${status}). Please try an alternate source.`);
+            }
+            if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+                throw new Error(`The connection timed out while loading the website. The server may be unresponsive or blocking automated connections. Please try an alternate site.`);
+            }
+        }
+        throw err;
+    }
     const html = response.data;
     const $ = cheerio.load(html);
     // Strip non-content elements

@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Navbar } from "./components/layout/Navbar";
+import { Navbar, type ViewType } from "./components/layout/Navbar";
 import { ProfileModal } from "./components/layout/ProfileModal";
+import { AuthModal } from "./components/auth/AuthModal";
+import { LandingPage } from "./components/landing/LandingPage";
 import { ChatPanel } from "./components/chat/ChatPanel";
 import { PipelineVisualizer } from "./components/visualizer/PipelineVisualizer";
-import { AutomationList } from "./components/dashboard/AutomationList";
+import { AutomationDashboard } from "./components/dashboard/AutomationDashboard";
 import type {
   ChatMessage,
   PipelineExecutionReport,
@@ -22,8 +24,10 @@ const INITIAL_WELCOME_MESSAGE: ChatMessage = {
 
 export function App() {
   const { profile, setActiveCount } = useAuth();
-  const [currentView, setCurrentView] = useState<"studio" | "automations">("studio");
+  const [currentView, setCurrentView] = useState<ViewType>("landing");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authInitialMode, setAuthInitialMode] = useState<"signin" | "signup">("signin");
 
   // Studio State
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_WELCOME_MESSAGE]);
@@ -102,6 +106,7 @@ export function App() {
       const destinations = {
         telegram_chat_id: profile?.telegram_chat_id,
         discord_webhook_url: profile?.discord_webhook_url,
+        email: profile?.email,
       };
 
       const report = await api.executeTestRun(pipeline, destinations);
@@ -122,7 +127,7 @@ export function App() {
       await api.createAutomation(profile.id, pipeline, true);
       setActiveCount((prev) => prev + 1);
       alert(`🎉 "${pipeline.title}" successfully saved and scheduled!`);
-      setCurrentView("automations");
+      setCurrentView("dashboard");
     } catch (err: any) {
       const msg = err.response?.data?.message || err.response?.data?.error || err.message;
       alert(`⚠️ Could not save automation: ${msg}`);
@@ -132,18 +137,33 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-sans selection:bg-sky-500/30 selection:text-sky-200">
       <Navbar
         currentView={currentView}
         setCurrentView={setCurrentView}
         onOpenSettings={() => setIsSettingsOpen(true)}
+        onOpenAuth={(mode) => {
+          setAuthInitialMode(mode || "signin");
+          setIsAuthOpen(true);
+        }}
       />
 
       <main className="flex-1 overflow-hidden flex flex-col">
-        {currentView === "studio" ? (
+        {currentView === "landing" ? (
+          <div className="flex-1 overflow-y-auto">
+            <LandingPage
+              onOpenStudio={() => setCurrentView("studio")}
+              onOpenDashboard={() => setCurrentView("dashboard")}
+              onOpenAuth={(mode) => {
+                setAuthInitialMode(mode || "signup");
+                setIsAuthOpen(true);
+              }}
+            />
+          </div>
+        ) : currentView === "studio" ? (
           <div className="flex-1 grid grid-cols-12 overflow-hidden h-[calc(100vh-4rem)]">
             {/* Left Column: Conversational AI Prompt (5 cols) */}
-            <div className="col-span-5 h-full overflow-hidden">
+            <div className="col-span-12 md:col-span-5 h-full overflow-hidden border-r border-slate-800/80">
               <ChatPanel
                 messages={messages}
                 onSendMessage={handleSendMessage}
@@ -153,7 +173,7 @@ export function App() {
             </div>
 
             {/* Right Column: Linear Step Visualizer (7 cols) */}
-            <div className="col-span-7 h-full overflow-hidden">
+            <div className="col-span-12 md:col-span-7 h-full overflow-hidden">
               <PipelineVisualizer
                 pipeline={pipeline}
                 onUpdatePipeline={setPipeline}
@@ -167,7 +187,7 @@ export function App() {
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto">
-            <AutomationList onNewAutomation={() => setCurrentView("studio")} />
+            <AutomationDashboard onNewAutomation={() => setCurrentView("studio")} />
           </div>
         )}
       </main>
@@ -175,6 +195,16 @@ export function App() {
       <ProfileModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
+        onOpenAuth={() => {
+          setAuthInitialMode("signin");
+          setIsAuthOpen(true);
+        }}
+      />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        initialMode={authInitialMode}
       />
     </div>
   );

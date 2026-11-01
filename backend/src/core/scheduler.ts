@@ -13,6 +13,7 @@ interface DbAutomation {
   steps: any;
   is_active: boolean;
   profiles?: {
+    email?: string;
     telegram_chat_id?: string;
     discord_webhook_url?: string;
   };
@@ -68,6 +69,7 @@ export function registerAutomationJob(automation: DbAutomation): boolean {
       const userDestinations = {
         telegram_chat_id: automation.profiles?.telegram_chat_id,
         discord_webhook_url: automation.profiles?.discord_webhook_url,
+        email: automation.profiles?.email,
       };
 
       await executePipeline(pipeline, {
@@ -131,3 +133,4 @@ export async function startScheduler(): Promise<void> {
     console.error("[SCHEDULER INIT ERROR]:", err.message);
   }
 }
+

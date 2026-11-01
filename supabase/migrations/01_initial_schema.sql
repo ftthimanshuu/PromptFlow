@@ -94,3 +94,4 @@ create policy "Users insert own execution logs"
 create policy "Users manage own chat" 
   on public.chat_history for all 
   using (auth.uid() = user_id);
+

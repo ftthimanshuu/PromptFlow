@@ -1,15 +1,13 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = require("express");
-const zod_1 = require("zod");
-const scheduler_js_1 = require("../core/scheduler.js");
-const supabase_js_1 = require("../db/supabase.js");
-const dsl_js_1 = require("../types/dsl.js");
-const router = (0, express_1.Router)();
-const CreateAutomationSchema = zod_1.z.object({
-    user_id: zod_1.z.string().uuid("Valid user UUID is required"),
-    pipeline: dsl_js_1.PipelineSpecificationSchema,
-    is_active: zod_1.z.boolean().default(true),
+import { Router } from "express";
+import { z } from "zod";
+import { registerAutomationJob, unregisterAutomationJob } from "../core/scheduler.js";
+import { getSupabaseAdmin } from "../db/supabase.js";
+import { PipelineSpecificationSchema } from "../types/dsl.js";
+const router = Router();
+const CreateAutomationSchema = z.object({
+    user_id: z.string().uuid("Valid user UUID is required"),
+    pipeline: PipelineSpecificationSchema,
+    is_active: z.boolean().default(true),
 });
 // Create new automation
 router.post("/", async (req, res) => {
@@ -22,7 +20,7 @@ router.post("/", async (req, res) => {
         return;
     }
     const { user_id, pipeline, is_active } = parseResult.data;
-    const supabase = (0, supabase_js_1.getSupabaseAdmin)();
+    const supabase = getSupabaseAdmin();
     try {
         const { data, error } = await supabase
             .from("automations")
@@ -48,7 +46,7 @@ router.post("/", async (req, res) => {
         }
         // Register with scheduler if active
         if (data.is_active) {
-            (0, scheduler_js_1.registerAutomationJob)(data);
+            registerAutomationJob(data);
         }
         res.status(201).json({
             message: "Automation created successfully",
@@ -71,7 +69,7 @@ router.patch("/:id/toggle", async (req, res) => {
         res.status(400).json({ error: "is_active boolean field is required" });
         return;
     }
-    const supabase = (0, supabase_js_1.getSupabaseAdmin)();
+    const supabase = getSupabaseAdmin();
     try {
         const { data, error } = await supabase
             .from("automations")
@@ -90,10 +88,10 @@ router.patch("/:id/toggle", async (req, res) => {
             throw error;
         }
         if (data.is_active) {
-            (0, scheduler_js_1.registerAutomationJob)(data);
+            registerAutomationJob(data);
         }
         else {
-            (0, scheduler_js_1.unregisterAutomationJob)(data.id);
+            unregisterAutomationJob(data.id);
         }
         res.json({
             message: `Automation ${data.is_active ? "activated" : "deactivated"}`,
@@ -111,9 +109,9 @@ router.patch("/:id/toggle", async (req, res) => {
 // Delete automation
 router.delete("/:id", async (req, res) => {
     const { id } = req.params;
-    const supabase = (0, supabase_js_1.getSupabaseAdmin)();
+    const supabase = getSupabaseAdmin();
     try {
-        (0, scheduler_js_1.unregisterAutomationJob)(id);
+        unregisterAutomationJob(id);
         const { error } = await supabase.from("automations").delete().eq("id", id);
         if (error)
             throw error;
@@ -127,4 +125,4 @@ router.delete("/:id", async (req, res) => {
         });
     }
 });
-exports.default = router;
+export default router;

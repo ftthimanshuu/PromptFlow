@@ -1,11 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.resolveFieldPath = resolveFieldPath;
-exports.evaluateCondition = evaluateCondition;
 /**
  * Resolves dot-notation path like "step_2.price" from execution context
  */
-function resolveFieldPath(path, context) {
+export function resolveFieldPath(path, context) {
     const parts = path.split(".");
     let current = context;
     for (const part of parts) {
@@ -17,9 +13,23 @@ function resolveFieldPath(path, context) {
     return current;
 }
 /**
+ * Extracts a numeric value from numbers or currency-formatted strings (e.g. "£51.77" -> 51.77, "₹45,000" -> 45000)
+ */
+function parseNumeric(val) {
+    if (typeof val === "number")
+        return val;
+    if (val === null || val === undefined)
+        return NaN;
+    if (typeof val === "string") {
+        const cleaned = val.replace(/[^0-9.-]+/g, "");
+        return parseFloat(cleaned);
+    }
+    return Number(val);
+}
+/**
  * Deterministically evaluates a condition config against the current execution context.
  */
-function evaluateCondition(config, context) {
+export function evaluateCondition(config, context) {
     const actualValue = resolveFieldPath(config.field, context);
     const expectedValue = config.value;
     const operator = config.operator;
@@ -41,7 +51,7 @@ function evaluateCondition(config, context) {
                 passed = String(actualValue).toLowerCase() === String(expectedValue).toLowerCase();
             }
             else if (typeof expectedValue === "number") {
-                passed = Number(actualValue) === expectedValue;
+                passed = parseNumeric(actualValue) === expectedValue;
             }
             else {
                 passed = String(actualValue).trim().toLowerCase() === String(expectedValue).trim().toLowerCase();
@@ -52,23 +62,23 @@ function evaluateCondition(config, context) {
                 passed = String(actualValue).toLowerCase() !== String(expectedValue).toLowerCase();
             }
             else if (typeof expectedValue === "number") {
-                passed = Number(actualValue) !== expectedValue;
+                passed = parseNumeric(actualValue) !== expectedValue;
             }
             else {
                 passed = String(actualValue).trim().toLowerCase() !== String(expectedValue).trim().toLowerCase();
             }
             break;
         case ">":
-            passed = Number(actualValue) > Number(expectedValue);
+            passed = parseNumeric(actualValue) > parseNumeric(expectedValue);
             break;
         case "<":
-            passed = Number(actualValue) < Number(expectedValue);
+            passed = parseNumeric(actualValue) < parseNumeric(expectedValue);
             break;
         case ">=":
-            passed = Number(actualValue) >= Number(expectedValue);
+            passed = parseNumeric(actualValue) >= parseNumeric(expectedValue);
             break;
         case "<=":
-            passed = Number(actualValue) <= Number(expectedValue);
+            passed = parseNumeric(actualValue) <= parseNumeric(expectedValue);
             break;
         case "contains":
             passed = String(actualValue).toLowerCase().includes(String(expectedValue).toLowerCase());

@@ -30,3 +30,4 @@ drop trigger if exists enforce_automation_quota on public.automations;
 create trigger enforce_automation_quota
   before insert or update on public.automations
   for each row execute function public.check_active_automation_limit();
+

@@ -80,20 +80,27 @@ export const PipelineVisualizer: React.FC<PipelineVisualizerProps> = ({
 
           {/* Test Status Banner if available */}
           {testReport && (
-            <div
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border ${
-                testReport.status === "SUCCESS"
-                  ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
-                  : testReport.status === "SKIPPED"
-                  ? "bg-slate-800/80 border-slate-700 text-slate-300"
-                  : "bg-rose-500/10 border-rose-500/20 text-rose-400"
-              }`}
-            >
-              {testReport.status === "SUCCESS" && <CheckCircle className="h-4 w-4" />}
-              {testReport.status === "SKIPPED" && <AlertCircle className="h-4 w-4" />}
-              {testReport.status === "FAILED" && <AlertCircle className="h-4 w-4" />}
-              <span>Test Status: {testReport.status}</span>
-              <span className="text-[10px] text-slate-500">({testReport.total_duration_ms}ms)</span>
+            <div className="flex flex-col items-end gap-1">
+              <div
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold border ${
+                  testReport.status === "SUCCESS"
+                    ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                    : testReport.status === "SKIPPED"
+                    ? "bg-slate-800/80 border-slate-700 text-slate-300"
+                    : "bg-rose-500/10 border-rose-500/20 text-rose-400"
+                }`}
+              >
+                {testReport.status === "SUCCESS" && <CheckCircle className="h-4 w-4" />}
+                {testReport.status === "SKIPPED" && <AlertCircle className="h-4 w-4" />}
+                {testReport.status === "FAILED" && <AlertCircle className="h-4 w-4" />}
+                <span>Test Status: {testReport.status}</span>
+                <span className="text-[10px] text-slate-500">({testReport.total_duration_ms}ms)</span>
+              </div>
+              {testReport.error_message && (
+                <span className="text-[11px] text-rose-300 max-w-md text-right leading-tight">
+                  {testReport.error_message}
+                </span>
+              )}
             </div>
           )}
         </div>

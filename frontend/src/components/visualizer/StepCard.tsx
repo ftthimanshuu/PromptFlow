@@ -169,10 +169,20 @@ export const StepCard: React.FC<StepCardProps> = ({ step, result, onClickEdit })
         )}
 
         {step.type === "condition" && (
-          <div className="flex items-center gap-1.5">
-            <span className="text-amber-300">{step.config.field}</span>
-            <span className="text-slate-500">{step.config.operator}</span>
-            <span className="text-sky-300 font-bold">{String(step.config.value)}</span>
+          <div>
+            {step.config.field ? (
+              <div className="flex items-center gap-1.5">
+                <span className="text-amber-300 font-semibold">{step.config.field}</span>
+                <span className="text-slate-400 px-1 py-0.5 bg-slate-900 rounded border border-slate-800">
+                  {step.config.operator || "=="}
+                </span>
+                <span className="text-sky-300 font-bold">{String(step.config.value ?? "")}</span>
+              </div>
+            ) : (
+              <span className="text-amber-400 font-sans italic">
+                ⚠️ No condition defined (click to configure)
+              </span>
+            )}
           </div>
         )}
 
@@ -199,8 +209,9 @@ export const StepCard: React.FC<StepCardProps> = ({ step, result, onClickEdit })
       )}
 
       {result?.error_message && (
-        <div className="mt-2 text-[11px] text-rose-400 bg-rose-500/10 p-2 rounded-lg border border-rose-500/20">
-          Error: {result.error_message}
+        <div className="mt-2.5 flex items-start gap-2 text-xs text-rose-300 bg-rose-500/10 p-3 rounded-xl border border-rose-500/25 leading-relaxed font-sans">
+          <AlertTriangle className="h-4 w-4 text-rose-400 shrink-0 mt-0.5" />
+          <span>{result.error_message}</span>
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Check } from "lucide-react";
 import type { StepDefinition } from "../../types/pipeline";
 
@@ -19,6 +19,13 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
 
   const [config, setConfig] = useState<Record<string, any>>({ ...step.config });
 
+  // Keep state in sync whenever step changes
+  useEffect(() => {
+    if (step) {
+      setConfig({ ...step.config });
+    }
+  }, [step.step_id, step.config]);
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!step) return;
@@ -28,6 +35,14 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
       config,
     });
     onClose();
+  }
+
+  function handleInsertVariable(variable: string) {
+    const currentMsg = config.message || "";
+    setConfig({
+      ...config,
+      message: `${currentMsg} {{${variable}}}`,
+    });
   }
 
   return (
@@ -68,6 +83,9 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     placeholder="https://example.com/notices"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
                   />
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Public web page to scrape and analyze.
+                  </span>
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
@@ -81,6 +99,9 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     }
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
                   />
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Default 10,000 characters. Prevents token overflow.
+                  </span>
                 </div>
               </>
             )}
@@ -114,9 +135,12 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                         expected_fields: e.target.value.split(",").map((s) => s.trim()).filter(Boolean),
                       })
                     }
-                    placeholder="found, title, link"
+                    placeholder="found, title, price, link"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
                   />
+                  <span className="text-[10px] text-slate-500 mt-1 block">
+                    Keys that the AI model must extract into a structured JSON object.
+                  </span>
                 </div>
               </>
             )}
@@ -134,9 +158,24 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     value={config.field || ""}
                     onChange={(e) => setConfig({ ...config, field: e.target.value })}
                     placeholder="step_2.found"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500 font-mono"
                   />
+                  {/* Quick Suggestions */}
+                  <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[10px] text-slate-500">Suggestions:</span>
+                    {["step_2.found", "step_2.price", "step_2.title"].map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => setConfig({ ...config, field: s })}
+                        className="text-[10px] bg-slate-800 hover:bg-slate-700 text-sky-400 px-1.5 py-0.5 rounded border border-slate-700"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                     Operator
@@ -150,11 +189,12 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     <option value="!=">!= (Not Equals)</option>
                     <option value=">">&gt; (Greater Than)</option>
                     <option value="<">&lt; (Less Than)</option>
-                    <option value=">=">&gt;= (Greater / Equal)</option>
-                    <option value="<=">&lt;= (Less / Equal)</option>
+                    <option value=">=">&gt;= (Greater or Equal)</option>
+                    <option value="<=">&lt;= (Less or Equal)</option>
                     <option value="contains">contains (Substring)</option>
                   </select>
                 </div>
+
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                     Comparison Target Value
@@ -173,6 +213,23 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     placeholder="true"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
                   />
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <span className="text-[10px] text-slate-500">Quick sets:</span>
+                    <button
+                      type="button"
+                      onClick={() => setConfig({ ...config, value: true })}
+                      className="text-[10px] bg-slate-800 text-emerald-400 px-2 py-0.5 rounded border border-slate-700"
+                    >
+                      true
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setConfig({ ...config, value: false })}
+                      className="text-[10px] bg-slate-800 text-rose-400 px-2 py-0.5 rounded border border-slate-700"
+                    >
+                      false
+                    </button>
+                  </div>
                 </div>
               </>
             )}
@@ -182,27 +239,47 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
               <>
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Channel
+                    Channel Destination
                   </label>
                   <select
                     value={config.channel || "telegram"}
                     onChange={(e) => setConfig({ ...config, channel: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
                   >
-                    <option value="telegram">Telegram</option>
-                    <option value="discord">Discord</option>
+                    <option value="telegram">Telegram (Bot Direct Message)</option>
+                    <option value="discord">Discord (Channel Webhook)</option>
+                    <option value="email">Email (Direct to your inbox)</option>
                   </select>
                 </div>
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Message Template (Variables: {"{{step_2.field}}"})
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-slate-300">
+                      Message Template
+                    </label>
+                    <span className="text-[10px] text-slate-500">Click variable to insert</span>
+                  </div>
+
+                  {/* Variable Pills */}
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {["step_2.title", "step_2.price", "step_2.link", "step_1.url"].map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => handleInsertVariable(v)}
+                        className="text-[10px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2 py-0.5 rounded border border-slate-700 transition-colors"
+                      >
+                        + {`{{${v}}}`}
+                      </button>
+                    ))}
+                  </div>
+
                   <textarea
                     rows={4}
                     required
                     value={config.message || ""}
                     onChange={(e) => setConfig({ ...config, message: e.target.value })}
-                    placeholder="🚨 Alert: {{step_2.title}} found!"
+                    placeholder="🚨 Alert: {{step_2.title}} is available!"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500 font-mono"
                   />
                 </div>
@@ -223,7 +300,7 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
           <button
             type="submit"
             form="step-edit-form"
-            className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold bg-sky-600 text-white hover:bg-sky-500 shadow-lg shadow-sky-600/20"
+            className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold bg-sky-600 text-white hover:bg-sky-500 shadow-lg shadow-sky-600/20 transition-all"
           >
             <Check className="h-4 w-4" />
             Apply Changes

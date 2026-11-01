@@ -44,6 +44,7 @@ export interface ChatMessage {
 export interface UserProfile {
   id: string;
   email: string;
+  full_name?: string | null;
   telegram_chat_id?: string | null;
   discord_webhook_url?: string | null;
 }
@@ -59,3 +60,4 @@ export interface Automation {
   last_run_at?: string | null;
   created_at: string;
 }
+

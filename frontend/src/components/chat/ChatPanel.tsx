@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Send, Sparkles, RotateCcw, Bot, User as UserIcon, Loader2 } from "lucide-react";
 import type { ChatMessage } from "../../types/pipeline";
 
@@ -35,6 +35,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   loading,
 }) => {
   const [input, setInput] = useState("");
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -111,6 +116,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             </div>
           </div>
         )}
+
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Starter Prompts Carousel / Chips */}

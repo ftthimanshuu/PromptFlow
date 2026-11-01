@@ -10,6 +10,9 @@ import {
   X,
   PlusCircle,
   AlertTriangle,
+  Play,
+  RotateCcw,
+  Loader2,
 } from "lucide-react";
 import type { Automation } from "../../types/pipeline";
 import { api } from "../../lib/api";
@@ -27,6 +30,39 @@ export const AutomationList: React.FC<AutomationListProps> = ({ onNewAutomation 
   const [selectedLogs, setSelectedLogs] = useState<any[] | null>(null);
   const [logsModalTitle, setLogsModalTitle] = useState("");
   const [quotaError, setQuotaError] = useState<string | null>(null);
+  const [runningId, setRunningId] = useState<string | null>(null);
+
+  async function handleRunNow(auto: Automation) {
+    setRunningId(auto.id);
+    try {
+      const pipeline = {
+        title: auto.title,
+        description: auto.description || undefined,
+        schedule_cron: auto.schedule_cron,
+        steps: auto.steps,
+      };
+      const destinations = {
+        telegram_chat_id: profile?.telegram_chat_id,
+        discord_webhook_url: profile?.discord_webhook_url,
+        email: profile?.email,
+      };
+      const report = await api.executeTestRun(pipeline, destinations);
+
+      await fetchAutomations();
+
+      if (report.status === "SUCCESS") {
+        alert(`✅ "${auto.title}" ran successfully in ${report.total_duration_ms}ms!`);
+      } else if (report.status === "SKIPPED") {
+        alert(`ℹ️ Condition evaluated to false. Pipeline execution halted cleanly (${report.total_duration_ms}ms).`);
+      } else {
+        alert(`⚠️ Run encountered an issue: ${report.error_message || "Step failed"}`);
+      }
+    } catch (err: any) {
+      alert("Manual run error: " + (err.response?.data?.details || err.message));
+    } finally {
+      setRunningId(null);
+    }
+  }
 
   useEffect(() => {
     fetchAutomations();
@@ -165,13 +201,22 @@ export const AutomationList: React.FC<AutomationListProps> = ({ onNewAutomation 
           </p>
         </div>
 
-        <button
-          onClick={onNewAutomation}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-sky-600 text-white hover:bg-sky-500 shadow-md shadow-sky-600/20"
-        >
-          <PlusCircle className="h-4 w-4" />
-          Create New
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => fetchAutomations()}
+            title="Refresh automations list"
+            className="p-2 rounded-xl text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
+          >
+            <RotateCcw className="h-4 w-4" />
+          </button>
+          <button
+            onClick={onNewAutomation}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-sky-600 text-white hover:bg-sky-500 shadow-md shadow-sky-600/20"
+          >
+            <PlusCircle className="h-4 w-4" />
+            Create New
+          </button>
+        </div>
       </div>
 
       {/* Quota Error Alert */}
@@ -243,6 +288,20 @@ export const AutomationList: React.FC<AutomationListProps> = ({ onNewAutomation 
 
               {/* Controls */}
               <div className="flex items-center gap-3">
+                <button
+                  onClick={() => handleRunNow(auto)}
+                  disabled={runningId === auto.id}
+                  title="Run this automation immediately"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/20 transition-all disabled:opacity-50"
+                >
+                  {runningId === auto.id ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Play className="h-3.5 w-3.5 fill-emerald-400" />
+                  )}
+                  <span>{runningId === auto.id ? "Running..." : "Run Now"}</span>
+                </button>
+
                 <button
                   onClick={() => handleViewLogs(auto)}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
