@@ -7,25 +7,26 @@
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL%2015-3ECF8E?logo=supabase)](https://supabase.com/)
 [![Groq](https://img.shields.io/badge/Groq-Llama%203.3%2070B-f55036)](https://groq.com/)
 [![Gemini](https://img.shields.io/badge/Google-Gemini%20Flash-4285F4?logo=google)](https://aistudio.google.com/)
+[![Design: Apple HIG](https://img.shields.io/badge/Design-Apple%20Glassmorphism-999999?logo=apple)](https://developer.apple.com/design/human-interface-guidelines/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-> **PromptFlow** eliminates the fragility of CSS-selector web scrapers and the complexity of 2D node graphs (Zapier, Make, n8n). Simply describe what you want to monitor in plain English; PromptFlow compiles your prompt into a deterministic 4-step pipeline DSL, runs on an autonomous background cron schedule, and dispatches rich push alerts to **Telegram**, **Discord**, or **Email**.
+> **PromptFlow** eliminates the fragility of CSS-selector web scrapers and the complexity of enterprise RPA node builders (Zapier, Make, n8n). Simply describe what you want to monitor in plain English; PromptFlow compiles your prompt into a deterministic 4-step pipeline DSL, executes in a sandboxed runtime, runs on an autonomous background cron schedule, and dispatches rich push alerts to **Telegram**, **Discord**, or **Email**.
 
 ---
 
 ## 🌟 Key Highlights & Capabilities
 
-* **Natural Language Compiler:** Turns plain English requests into a strict 4-step execution DSL (`scrape` $\rightarrow$ `ai_filter` $\rightarrow$ `condition` $\rightarrow$ `notify`).
-* **Multi-Turn Slot-Filling:** If a prompt lacks essential parameters (e.g. missing product URL or threshold), the AI drafts what it can and asks a friendly clarification question without dropping context.
-* **Hybrid LLM Architecture:** Ultra-fast sub-second extraction powered by **Groq Llama 3.3 70B** with seamless fallback to **Google Gemini 3.5 Flash**.
-* **Stealth Scraper with SSRF Firewall:** Modern browser header spoofing bypasses standard WAF blocks while pre-socket DNS inspection blocks internal subnets, loopbacks (`127.0.0.1`), and AWS metadata endpoints (`169.254.169.254`).
-* **Deterministic Logic Engine:** Type-safe condition evaluations (`==`, `!=`, `>`, `<`, `>=`, `<=`, `contains`) with automatic currency stripping (`£51.77` $\rightarrow$ `51.77`).
+* **Natural Language Compiler:** Converts plain English requests into a strict 4-step execution DSL (`scrape` $\rightarrow$ `ai_filter` $\rightarrow$ `condition` $\rightarrow$ `notify`) in under 2 seconds.
+* **Multi-Turn Slot-Filling:** If a prompt lacks essential parameters (e.g. missing product URL or numerical threshold), the AI initiates an interactive clarification dialogue without losing context.
+* **Zero-Selector Semantic AI Extraction:** Eliminates fragile CSS selectors and XPath queries. Web HTML is parsed by schema-constrained LLMs (**Groq Llama 3.3 70B** with **Gemini Flash** fallback) that adapt seamlessly if a website updates its frontend layout.
+* **Stealth Sandbox with SSRF Firewall:** Browser user-agent rotation and anti-bot headers bypass standard WAF challenges, while a custom **Pre-Socket DNS Firewall** blocks loopbacks (`127.0.0.1`), private subnets (`10.0.0.0/8`, `192.168.0.0/16`), and cloud metadata services (`169.254.169.254`).
+* **Deterministic Logic & Short-Circuit Engine:** Safe condition evaluation (`==`, `!=`, `>`, `<`, `>=`, `<=`, `contains`) with automatic currency stripping (`£51.77` $\rightarrow$ `51.77`). When a condition is false, execution short-circuits to avoid spamming the user.
 * **Multi-Channel Push Alerts:**
-  * ✈️ **Telegram Bot:** Direct push messages with HTML formatting.
+  * ✈️ **Telegram Bot:** Real-time push alerts with HTML formatting.
   * 💬 **Discord Webhooks:** Rich visual embeds with color-coded sidebars and timestamps.
-  * 📧 **Email (SMTP / Gmail):** Responsive dark-themed HTML emails with formatted bullet points.
-* **Fair Resource Governance:** Supabase database triggers strictly enforce **5 active automations per user account**.
-* **Modern Studio & Dashboard:** Built on Tailwind CSS and UI-UX-Pro-Max design patterns with Linear/Raycast OLED dark aesthetic, live pipeline visualizer, step drawers, and real-time execution logs.
+  * 📧 **Email (SMTP / Nodemailer):** Responsive dark-themed HTML emails with formatted bullet points.
+* **Apple Glassmorphism UI:** Adheres strictly to Apple Human Interface Guidelines: obsidian `#05070D` ground, translucent glass cards (`rgba(255,255,255,0.07)`), 28px backdrop blur with 170% saturation, ambient neon-green execution glows, and smooth spring physics.
+* **Quota Governance:** Database triggers and UI meters strictly enforce a **5 active automations limit** per account.
 
 ---
 
@@ -33,11 +34,11 @@
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│                        PROMPTFLOW FRONTEND (Vite + React)              │
+│                        PROMPTFLOW FRONTEND (Vite + React 18)           │
 │                                                                        │
 │   ┌───────────────────────────┐     ┌──────────────────────────────┐   │
-│   │   AI Automation Studio    │     │      My Automations Hub      │   │
-│   │ (Conversational Compiler) │     │ (5/5 Quota Meter & Run Logs) │   │
+│   │    Conversational Studio  │     │      My Automations Hub      │   │
+│   │ (Chat + Pipeline Canvas)  │     │ (5/5 Quota Meter & Run Logs) │   │
 │   └─────────────┬─────────────┘     └──────────────▲───────────────┘   │
 └─────────────────┼──────────────────────────────────┼───────────────────┘
                   │ REST API                         │ RLS Realtime Sync
@@ -49,6 +50,7 @@
 │   • PostgreSQL: Strict tenant isolation via Row-Level Security (RLS)   │
 │   • Trigger Enforcer: BEFORE INSERT/UPDATE restricts active slots <= 5 │
 │   • Profiles Table: Stores Telegram Chat ID & Discord Webhook URL      │
+│   • Chat History: Multi-turn session memory for slot-filling dialogue  │
 └─────────────────┬──────────────────────────────────────────────────────┘
                   │ Service Key
                   ▼
@@ -56,12 +58,13 @@
 │               NODE.JS + EXPRESS BACKEND ENGINE (TypeScript)            │
 │                                                                        │
 │   1. Compiler Engine: Natural language -> 4-step validated DSL         │
-│   2. Stealth Scraper: Axios + Cheerio with pre-socket SSRF defense     │
-│   3. Semantic AI Extractor: Groq Llama 3.3 70B / Gemini Flash JSON     │
-│   4. Deterministic Evaluator: Safe type-coerced condition engine       │
-│   5. Template Interpolator: {{step_X.field}} with clean bullet lists   │
-│   6. Scheduler Daemon: node-cron background task manager               │
-│   7. Notification Dispatcher: Telegram Bot, Discord, & Nodemailer      │
+│   2. Pre-Socket DNS Firewall: Blocks localhost & private IPv4/IPv6 IPs │
+│   3. Sandbox Scraper: Axios + Cheerio with UA rotation & timeout guards│
+│   4. Semantic AI Extractor: Groq Llama 3.3 70B / Gemini Flash JSON     │
+│   5. Deterministic Evaluator: Safe type-coerced condition engine       │
+│   6. Template Interpolator: {{step_X.field}} with clean bullet lists   │
+│   7. Scheduler Daemon: node-cron background task manager               │
+│   8. Notification Dispatcher: Telegram Bot, Discord, & Nodemailer      │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -69,19 +72,19 @@
 
 ## 📋 The 4-Step Pipeline DSL
 
-Every automation is compiled into a lightweight, declarative JSON schema:
+Every automation is compiled into a declarative, schema-validated JSON workflow:
 
 ```json
 {
-  "title": "Daily Exam Timetable Watcher",
-  "description": "Monitors university notices for 7th-sem schedules",
+  "title": "Books To Scrape - Price Drop Watcher",
+  "description": "Monitors book price and pings Telegram when under £60",
   "schedule_cron": "0 9 * * *",
   "steps": [
     {
       "step_id": 1,
       "type": "scrape",
       "config": {
-        "url": "https://www.rgpv.ac.in",
+        "url": "https://books.toscrape.com/catalogue/a-light-in-the-attic_1000/index.html",
         "max_length": 5000
       }
     },
@@ -89,17 +92,17 @@ Every automation is compiled into a lightweight, declarative JSON schema:
       "step_id": 2,
       "type": "ai_filter",
       "config": {
-        "instruction": "Scan page for 7th sem timetable notices. Return found and title.",
-        "expected_fields": ["found", "title"]
+        "instruction": "Extract the book title and price in GBP as a number.",
+        "expected_fields": ["title", "price"]
       }
     },
     {
       "step_id": 3,
       "type": "condition",
       "config": {
-        "field": "step_2.found",
-        "operator": "==",
-        "value": true
+        "field": "step_2.price",
+        "operator": "<",
+        "value": 60
       }
     },
     {
@@ -107,7 +110,7 @@ Every automation is compiled into a lightweight, declarative JSON schema:
       "type": "notify",
       "config": {
         "channel": "telegram",
-        "message": "🚨 Exam Schedule Released: {{step_2.title}}"
+        "message": "🚨 Price Alert: {{step_2.title}} is now £{{step_2.price}}!"
       }
     }
   ]
@@ -119,10 +122,10 @@ Every automation is compiled into a lightweight, declarative JSON schema:
 ## ⚡ Quickstart Guide
 
 ### 1. Prerequisites
-- **Node.js** v18+ (tested on v20 & v24)
+- **Node.js** v18+ (tested on v20 & v22)
 - **npm** v10+
-- A free **Supabase** account ([supabase.com](https://supabase.com))
-- Free API keys from **Groq** ([console.groq.com](https://console.groq.com)) or **Google AI Studio** ([aistudio.google.com](https://aistudio.google.com))
+- Free **Supabase** project ([supabase.com](https://supabase.com))
+- Free API key from **Groq** ([console.groq.com](https://console.groq.com)) or **Google AI Studio** ([aistudio.google.com](https://aistudio.google.com))
 
 ---
 
@@ -146,7 +149,7 @@ SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 SUPABASE_ANON_KEY=your-anon-key
 
-# LLM Engines (at least one recommended)
+# LLM Engines
 GROQ_API_KEY=gsk_your_groq_api_key
 GEMINI_API_KEY=your_gemini_api_key
 
@@ -160,11 +163,11 @@ SMTP_USER=your-email@gmail.com
 SMTP_PASS=your-16-char-app-password
 ```
 
-Compile and start the backend:
+Build and run the backend:
 ```bash
 npm run build
 npm run dev
-# Server running at http://localhost:5000
+# Backend running at http://localhost:5000/api
 ```
 
 ---
@@ -186,30 +189,57 @@ VITE_SUPABASE_URL=https://your-project.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
-Start the Vite development server:
+Run the Vite client:
 ```bash
 npm run dev
-# Client running at http://localhost:5173
+# Frontend running at http://localhost:5173
 ```
 
 ---
 
 ### 4. Database Migrations (Supabase)
 
-Run the SQL migration scripts in your **Supabase Dashboard $\rightarrow$ SQL Editor** in order:
+Execute the SQL scripts in your **Supabase Dashboard $\rightarrow$ SQL Editor** in numerical order:
 1. `supabase/migrations/01_initial_schema.sql` — Profiles, automations, execution logs, and RLS policies.
-2. `supabase/migrations/02_auth_trigger.sql` — Automatic profile provisioning upon Supabase signup.
-3. `supabase/migrations/03_quota_trigger.sql` — Enforces the 5 active automation limit per account.
-4. `supabase/migrations/04_user_profile_metadata.sql` — Syncs Telegram Chat ID, Discord Webhook, and display name into profiles.
+2. `supabase/migrations/02_auth_trigger.sql` — Automatic profile generation upon user registration.
+3. `supabase/migrations/03_quota_trigger.sql` — Enforces maximum 5 active automations per account.
+4. `supabase/migrations/04_user_profile_metadata.sql` — Stores Telegram Chat ID, Discord Webhook, and preferences.
 
 ---
 
-## 🧪 Comprehensive Automated Test Suite
+## 🧪 Comprehensive Automated Test Suites
 
-PromptFlow includes a complete automated test runner testing all 10 core execution branches:
+PromptFlow features two automated test suites covering end-to-end integration and specialized automation types:
+
+### 1. Root End-to-End System Test Suite
+Validates the entire full-stack pipeline from API health to AI compilation, sandbox execution, SSRF firewalling, and capacity governance:
 
 ```bash
-# Run the test suite from root
+node test.js
+```
+
+```text
+================================================================================
+⚡ PROMPTFLOW END-TO-END FEATURE VERIFICATION SUITE
+================================================================================
+✅ [PASS] [Infrastructure] Backend API Health Check
+✅ [PASS] [Infrastructure] Frontend Dev Server Serving Assets
+✅ [PASS] [AI Compiler] Compiling Plain English Prompt to 4-Step Validated DSL
+✅ [PASS] [Slot-Filling] Ambiguous Prompt Triggers Intelligent Clarification Dialogue
+✅ [PASS] [Pipeline Engine] Live Scraping & AI Extraction in Sandbox (Condition True)
+✅ [PASS] [Condition Logic] False Condition Short-Circuits Execution Without Alert Dispatch
+✅ [PASS] [Security / SSRF] SSRF Pre-Socket Firewall Blocks Localhost & Private Subnets
+✅ [PASS] [Alert Formatting] Multi-Item Array Template Interpolation Formats Clean Bullets
+✅ [PASS] [Governance] Automation Quota Enforcement (Strict 5 Concurrent Active Limit)
+
+Total Features Tested: 9 | Passed: 9 | Pass Rate: 100%
+🎉 ALL PROMPTFLOW FEATURES VERIFIED SUCCESSFULLY!
+```
+
+### 2. Backend Specialized Automation Suite
+Tests 10 distinct automation archetypes (market monitoring, commodity tracking, Wikipedia events, case-insensitive string matching, Telegram dispatch):
+
+```bash
 node backend/test.js
 ```
 
@@ -217,39 +247,37 @@ node backend/test.js
 ================================================================================
 📊 PROMPTFLOW COMPREHENSIVE AUTOMATION TEST RESULTS
 ================================================================================
-Total Automation Types Tested: 10
-Passed: 10
-Failed: 0
-Success Rate: 100%
-
-┌─────────┬────┬────────────────────┬─────────────────────────────────────────────────┬────────┐
-│ (index) │ #  │ Category           │ Test                                            │ Status │
-├─────────┼────┼────────────────────┼─────────────────────────────────────────────────┼────────┤
-│ 0       │ 1  │ 'Numeric Watcher'  │ 'E-Commerce Price Drop (< 60) Triggered Succes' │ 'PASS' │
-│ 1       │ 2  │ 'Condition Logic'  │ 'Negative Threshold Gracefully Short-Circuits ' │ 'PASS' │
-│ 2       │ 3  │ 'Market Monitor'   │ 'Commodity Live Price Extraction & Threshold T' │ 'PASS' │
-│ 3       │ 4  │ 'Content Monitor'  │ 'Semantic Topic Matching on Live Wikipedia Eve' │ 'PASS' │
-│ 4       │ 5  │ 'Operator Engine'  │ "Case-Insensitive 'contains' Operator Validati" │ 'PASS' │
-│ 5       │ 6  │ 'Template Engine'  │ 'Multi-Variable Dynamic Token Replacement ({{s' │ 'PASS' │
-│ 6       │ 7  │ 'AI Compiler'      │ 'Translating Natural Language to 4-Step Valida' │ 'PASS' │
-│ 7       │ 8  │ 'Slot-Filling'     │ 'Automatic Detection of Missing Parameters & C' │ 'PASS' │
-│ 8       │ 9  │ 'Security / SSRF'  │ 'Pre-Socket DNS Inspection Blocking Localhost ' │ 'PASS' │
-│ 9       │ 10 │ 'Alert Dispatcher' │ 'Telegram Bot API Live Delivery to Mobile Devi' │ 'PASS' │
-└─────────┴────┴────────────────────┴─────────────────────────────────────────────────┴────────┘
+Total Automation Types Tested: 10 | Passed: 10 | Success Rate: 100%
 🎉 ALL 10 AUTOMATION TYPES VERIFIED SUCCESSFULLY!
 ```
 
 ---
 
+## 🚀 Deployment Guide
+
+| Component | Platform | Deployment Instructions |
+| :--- | :--- | :--- |
+| **Frontend** | **Vercel** | Connect repo $\rightarrow$ set Root Directory to `frontend` $\rightarrow$ set `VITE_API_URL` to backend URL $\rightarrow$ Deploy. |
+| **Backend** | **Render / Railway** | Connect repo $\rightarrow$ set Root Directory to `backend` $\rightarrow$ Build: `npm install && npm run build` $\rightarrow$ Start: `npm start` $\rightarrow$ Add `.env` keys. |
+| **Database** | **Supabase** | Cloud hosted PostgreSQL database with built-in Auth & RLS. |
+
+---
+
+## 📑 Faculty Presentation Deck
+A complete 6-slide presentation deck with in-depth technical explanations, visual placement guides, and verbatim speaker scripts is available in:
+* [`PRESENTATION_DECK.md`](./PRESENTATION_DECK.md)
+
+---
+
 ## 🛡️ Security & Reliability Architecture
 
-* **Pre-Socket SSRF Firewall:** Uses Node.js `dns/promises` to resolve hostnames before dispatching network sockets. Explicitly rejects `localhost`, `127.0.0.0/8`, private subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), and cloud link-local addresses (`169.254.169.254`).
-* **Graceful Short-Circuiting:** When a condition evaluates to `false`, the pipeline immediately halts with a `SKIPPED` status, avoiding unnecessary notification spam.
-* **Defensive Error Handling:** HTTP 403 / Cloudflare WAF challenges are translated into clean, human-actionable instructions.
-* **Offline Mock Fallbacks:** If remote LLM providers experience rate-limiting or outages, PromptFlow fails over gracefully to deterministic mock heuristics so testing is never blocked.
+* **Pre-Socket SSRF Firewall:** Uses Node.js `dns/promises` to resolve target hostnames before socket connection. Rejects loopbacks, private CIDR subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), and AWS link-local addresses (`169.254.169.254`).
+* **Deterministic Short-Circuiting:** Halts pipelines immediately with a `SKIPPED` state if conditions evaluate to false, preventing notification spam.
+* **Adaptive Error Recovery:** Translates HTTP 403 / WAF challenge pages into helpful alternative source recommendations.
+* **Quota Enforcement:** Database-level trigger prevents any user account from activating more than 5 concurrent automations.
 
 ---
 
 ## 📄 License
 
-Distributed under the **MIT License**. See `LICENSE` for more information.
+Distributed under the **MIT License**. See `LICENSE` for details.
