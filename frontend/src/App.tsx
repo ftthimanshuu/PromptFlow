@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Navbar, type ViewType } from "./components/layout/Navbar";
 import { ProfileModal } from "./components/layout/ProfileModal";
 import { AuthModal } from "./components/auth/AuthModal";
+import { IntegrationGuideModal } from "./components/layout/IntegrationGuideModal";
 import { LandingPage } from "./components/landing/LandingPage";
 import { ChatPanel } from "./components/chat/ChatPanel";
 import { PipelineVisualizer } from "./components/visualizer/PipelineVisualizer";
@@ -10,6 +11,7 @@ import type {
   ChatMessage,
   PipelineExecutionReport,
   PipelineSpecification,
+  Automation,
 } from "./types/pipeline";
 import { api } from "./lib/api";
 import { useAuth } from "./context/AuthContext";
@@ -18,7 +20,7 @@ const INITIAL_WELCOME_MESSAGE: ChatMessage = {
   id: "welcome-1",
   role: "model",
   content:
-    "👋 Welcome to PromptFlow. Describe what you'd like to monitor or automate in plain English (e.g. price drops, daily news headlines, or tech releases). I will compile it into an executable, scheduled micro-pipeline.",
+    "I compiled a 4-step pipeline. The source blocked access, so see Step 1 for an alternate source.",
   timestamp: new Date().toISOString(),
 };
 
@@ -27,6 +29,7 @@ export function App() {
   const [currentView, setCurrentView] = useState<ViewType>("landing");
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [authInitialMode, setAuthInitialMode] = useState<"signin" | "signup">("signin");
 
   // Studio State
@@ -63,7 +66,7 @@ export function App() {
           response.question ||
           "I've drafted your automation pipeline, but need a few details. Could you clarify?";
       } else {
-        assistantText = `✨ I compiled your automation: "${
+        assistantText = `I compiled your automation: "${
           response.pipeline?.title || "Web Monitor"
         }". Review the step cards on the right and click "Test Run" to verify live in the sandbox.`;
       }
@@ -80,7 +83,7 @@ export function App() {
       const errorMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: "model",
-        content: `⚠️ Failed to compile: ${err.message}. Please check if the backend service is running.`,
+        content: `Failed to compile: ${err.message}. Please check if the backend service is running.`,
         timestamp: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -94,6 +97,24 @@ export function App() {
     setMessages([INITIAL_WELCOME_MESSAGE]);
     setPipeline(null);
     setTestReport(null);
+  }
+
+  function handleEditInStudio(auto: Automation) {
+    setPipeline({
+      title: auto.title,
+      description: auto.description || undefined,
+      schedule_cron: auto.schedule_cron,
+      steps: auto.steps,
+    });
+    setMessages([
+      {
+        id: crypto.randomUUID(),
+        role: "model",
+        content: `Loaded automation "${auto.title}". You can modify it by asking questions or editing the cards directly.`,
+        timestamp: new Date().toISOString(),
+      },
+    ]);
+    setCurrentView("studio");
   }
 
   // Sandbox Test Run
@@ -126,18 +147,21 @@ export function App() {
     try {
       await api.createAutomation(profile.id, pipeline, true);
       setActiveCount((prev) => prev + 1);
-      alert(`🎉 "${pipeline.title}" successfully saved and scheduled!`);
+      alert(`"${pipeline.title}" successfully saved and scheduled!`);
       setCurrentView("dashboard");
     } catch (err: any) {
       const msg = err.response?.data?.message || err.response?.data?.error || err.message;
-      alert(`⚠️ Could not save automation: ${msg}`);
+      alert(`Could not save automation: ${msg}`);
     } finally {
       setIsSaving(false);
     }
   }
 
   return (
-    <div className="min-h-screen bg-black text-[#F5F5F7] flex flex-col font-sans selection:bg-[#007AFF]/30 selection:text-white">
+    <div className="relative min-h-screen bg-black text-[#F5F5F7] flex flex-col font-sans selection:bg-[#0071E3]/30 selection:text-white overflow-x-hidden">
+      {/* Ambient background glow */}
+      <div className="ambient-glow-top" />
+
       <Navbar
         currentView={currentView}
         setCurrentView={setCurrentView}
@@ -146,9 +170,10 @@ export function App() {
           setAuthInitialMode(mode || "signin");
           setIsAuthOpen(true);
         }}
+        onOpenGuide={() => setIsGuideOpen(true)}
       />
 
-      <main className="flex-1 overflow-hidden flex flex-col">
+      <main className="relative z-10 flex-1 overflow-hidden flex flex-col">
         {currentView === "landing" ? (
           <div className="flex-1 overflow-y-auto">
             <LandingPage
@@ -158,36 +183,42 @@ export function App() {
                 setAuthInitialMode(mode || "signup");
                 setIsAuthOpen(true);
               }}
+              onOpenGuide={() => setIsGuideOpen(true)}
             />
           </div>
         ) : currentView === "studio" ? (
-          <div className="flex-1 grid grid-cols-12 overflow-hidden h-[calc(100vh-4.25rem)]">
-            {/* Left Column: Conversational AI Prompt (5 cols) */}
-            <div className="col-span-12 md:col-span-5 h-full overflow-hidden border-r border-white/[0.08]">
-              <ChatPanel
-                messages={messages}
-                onSendMessage={handleSendMessage}
-                onResetChat={handleResetChat}
-                loading={isCompiling}
-              />
-            </div>
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 pb-16">
+            <div className="max-w-6xl mx-auto pt-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Column: Conversational AI Prompt (5 cols) */}
+              <div className="lg:col-span-5">
+                <ChatPanel
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                  onResetChat={handleResetChat}
+                  loading={isCompiling}
+                />
+              </div>
 
-            {/* Right Column: Linear Step Visualizer (7 cols) */}
-            <div className="col-span-12 md:col-span-7 h-full overflow-hidden">
-              <PipelineVisualizer
-                pipeline={pipeline}
-                onUpdatePipeline={setPipeline}
-                onTestRun={handleTestRun}
-                onSaveAutomation={handleSaveAutomation}
-                testReport={testReport}
-                isExecuting={isExecuting}
-                isSaving={isSaving}
-              />
+              {/* Right Column: Linear Step Visualizer (7 cols) */}
+              <div className="lg:col-span-7">
+                <PipelineVisualizer
+                  pipeline={pipeline}
+                  onUpdatePipeline={setPipeline}
+                  onTestRun={handleTestRun}
+                  onSaveAutomation={handleSaveAutomation}
+                  testReport={testReport}
+                  isExecuting={isExecuting}
+                  isSaving={isSaving}
+                />
+              </div>
             </div>
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto">
-            <AutomationDashboard onNewAutomation={() => setCurrentView("studio")} />
+            <AutomationDashboard
+              onNewAutomation={() => setCurrentView("studio")}
+              onEditInStudio={handleEditInStudio}
+            />
           </div>
         )}
       </main>
@@ -205,6 +236,11 @@ export function App() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
         initialMode={authInitialMode}
+      />
+
+      <IntegrationGuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
       />
     </div>
   );

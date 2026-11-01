@@ -1,284 +1,212 @@
 import React, { useState } from "react";
-import {
-  X,
-  Send,
-  Disc as Discord,
-  Mail,
-  ExternalLink,
-  Copy,
-  HelpCircle,
-  ShieldCheck,
-} from "lucide-react";
+import { X } from "lucide-react";
 
 interface IntegrationGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialTab?: "telegram" | "discord" | "email";
+  initialTab?: "all" | "discord" | "telegram" | "email";
 }
 
 export const IntegrationGuideModal: React.FC<IntegrationGuideModalProps> = ({
   isOpen,
   onClose,
-  initialTab = "telegram",
+  initialTab = "all",
 }) => {
-  const [activeTab, setActiveTab] = useState<"telegram" | "discord" | "email">(initialTab);
-  const [copiedBot, setCopiedBot] = useState(false);
+  const [activeTab, setActiveTab] = useState<"all" | "discord" | "telegram" | "email">(initialTab);
 
   if (!isOpen) return null;
 
-  function handleCopy(text: string) {
-    navigator.clipboard.writeText(text);
-    setCopiedBot(true);
-    setTimeout(() => setCopiedBot(false), 1500);
-  }
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-2xl p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-[#141416] border border-white/[0.12] rounded-[28px] w-full max-w-lg shadow-2xl relative overflow-hidden my-6 text-[#F5F5F7] font-sans">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "32px",
+        background: "rgba(0,0,0,.8)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+      }}
+    >
+      <div
+        className="c relative text-left"
+        style={{
+          width: "100%",
+          maxWidth: "1080px",
+          maxHeight: "90vh",
+          overflowY: "auto",
+          boxSizing: "border-box",
+          background: "#141416",
+          border: "1px solid rgba(255,255,255,.1)",
+          borderRadius: "28px",
+          padding: "28px",
+          boxShadow: "0 4px 24px rgba(0,0,0,.4)",
+        }}
+      >
         {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 text-white/50 hover:text-white p-2 rounded-full hover:bg-white/[0.08] transition-colors"
+          style={{
+            position: "absolute",
+            top: "20px",
+            right: "20px",
+            background: "transparent",
+            border: 0,
+            color: "#A1A1A6",
+            minHeight: "auto",
+            padding: "6px",
+            cursor: "pointer",
+          }}
+          aria-label="Close"
         >
-          <X className="h-4 w-4" />
+          <X style={{ width: "18px", height: "18px" }} />
         </button>
 
-        <div className="p-6 md:p-8">
-          {/* Header */}
-          <div className="mb-6 text-left">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.06] text-white/80 border border-white/[0.08] text-xs font-medium mb-2.5">
-              <HelpCircle className="h-3 w-3 text-[#007AFF]" />
-              <span>Step-by-Step Setup Guide</span>
-            </div>
-            <h2 className="text-xl font-bold tracking-tight text-white">
-              Connect Alert Channels
-            </h2>
-            <p className="text-xs text-[#A1A1A6] mt-1">
-              Instructions for connecting Discord, Telegram, or Email notifications in 60 seconds.
-            </p>
-          </div>
+        <h1 style={{ fontSize: "24px", fontWeight: 600, letterSpacing: "-.02em", color: "#F5F5F7" }}>
+          Channel Setup Guide
+        </h1>
+        <p className="s" style={{ margin: "4px 0 20px" }}>
+          Connect where PromptFlow should deliver your alerts.
+        </p>
 
-          {/* Cupertino Segmented Tabs */}
-          <div className="flex bg-[#1C1C1E] p-1 rounded-full border border-white/[0.08] mb-6">
-            <button
-              type="button"
-              onClick={() => setActiveTab("email")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-full transition-all ${
-                activeTab === "email"
-                  ? "bg-white text-black font-semibold shadow-sm"
-                  : "text-white/60 hover:text-white"
-              }`}
+        {/* Channel Tab Filter */}
+        <div style={{ display: "inline-flex", background: "#1C1C1E", borderRadius: "12px", padding: "3px", marginBottom: "20px" }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab("all")}
+            style={{
+              background: activeTab === "all" ? "#2C2C2E" : "transparent",
+              color: activeTab === "all" ? "#F5F5F7" : "#A1A1A6",
+              padding: "0 18px",
+              minHeight: "34px",
+              border: 0,
+              borderRadius: "9px",
+              fontSize: "13px",
+            }}
+          >
+            All Channels
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("discord")}
+            style={{
+              background: activeTab === "discord" ? "#2C2C2E" : "transparent",
+              color: activeTab === "discord" ? "#F5F5F7" : "#A1A1A6",
+              padding: "0 18px",
+              minHeight: "34px",
+              border: 0,
+              borderRadius: "9px",
+              fontSize: "13px",
+            }}
+          >
+            Discord
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("telegram")}
+            style={{
+              background: activeTab === "telegram" ? "#2C2C2E" : "transparent",
+              color: activeTab === "telegram" ? "#F5F5F7" : "#A1A1A6",
+              padding: "0 18px",
+              minHeight: "34px",
+              border: 0,
+              borderRadius: "9px",
+              fontSize: "13px",
+            }}
+          >
+            Telegram
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("email")}
+            style={{
+              background: activeTab === "email" ? "#2C2C2E" : "transparent",
+              color: activeTab === "email" ? "#F5F5F7" : "#A1A1A6",
+              padding: "0 18px",
+              minHeight: "34px",
+              border: 0,
+              borderRadius: "9px",
+              fontSize: "13px",
+            }}
+          >
+            Gmail / Email
+          </button>
+        </div>
+
+        {/* 3 Step-by-Step Columns Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
+          {/* Discord */}
+          {(activeTab === "all" || activeTab === "discord") && (
+            <section
+              style={{
+                background: "#1C1C1E",
+                border: "1px solid rgba(255,255,255,.08)",
+                borderRadius: "20px",
+                padding: "20px",
+              }}
             >
-              <Mail className="h-3 w-3" />
-              <span>Email</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("telegram")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-full transition-all ${
-                activeTab === "telegram"
-                  ? "bg-white text-black font-semibold shadow-sm"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              <Send className="h-3 w-3" />
-              <span>Telegram</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("discord")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-full transition-all ${
-                activeTab === "discord"
-                  ? "bg-white text-black font-semibold shadow-sm"
-                  : "text-white/60 hover:text-white"
-              }`}
-            >
-              <Discord className="h-3 w-3" />
-              <span>Discord</span>
-            </button>
-          </div>
-
-          {/* TAB 1: EMAIL */}
-          {activeTab === "email" && (
-            <div className="space-y-3.5 text-left text-xs">
-              <div className="p-4 rounded-2xl bg-[#34C759]/10 border border-[#34C759]/20 text-[#34C759]">
-                <div className="flex items-center gap-2 font-semibold text-xs mb-1">
-                  <ShieldCheck className="h-4 w-4 text-[#34C759]" />
-                  <span>Zero Password Setup for Users</span>
-                </div>
-                <p className="text-white/80 leading-relaxed text-[11px]">
-                  Users <strong>never</strong> need to provide an app password. PromptFlow’s central verified SMTP server delivers notifications directly <em>to</em> their email address!
-                </p>
-              </div>
-
-              <div className="space-y-2.5 text-[#F5F5F7]">
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
-                  <span className="h-5 w-5 rounded-full bg-black/50 text-[#34C759] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
-                    1
-                  </span>
-                  <div>
-                    <strong className="text-white block mb-0.5">Use your Account Email</strong>
-                    <span className="text-white/60 text-[11px]">
-                      The email address you sign up with is automatically used as the default destination.
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
-                  <span className="h-5 w-5 rounded-full bg-black/50 text-[#34C759] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
-                    2
-                  </span>
-                  <div>
-                    <strong className="text-white block mb-0.5">Prompt for Email Dispatch</strong>
-                    <span className="text-white/60 text-[11px]">
-                      Say: <em>"Check website daily and send highlights to my email."</em>
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
-                  <span className="h-5 w-5 rounded-full bg-black/50 text-[#34C759] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
-                    3
-                  </span>
-                  <div>
-                    <strong className="text-white block mb-0.5">Instant Formatted Delivery</strong>
-                    <span className="text-white/60 text-[11px]">
-                      When the condition evaluates to true, an HTML email with clear bullet points arrives in your inbox.
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+              <h2 style={{ fontSize: "16px", fontWeight: 600, letterSpacing: "-.01em", marginBottom: "12px", color: "#F5F5F7" }}>
+                Discord
+              </h2>
+              <ol style={{ paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "8px", color: "#A1A1A6", fontSize: "14px" }}>
+                <li>Create a Discord Server (or pick yours).</li>
+                <li>Open Channel Settings.</li>
+                <li>Go to Integrations.</li>
+                <li>Choose New Webhook.</li>
+                <li>Copy Webhook URL and paste it into PromptFlow.</li>
+              </ol>
+            </section>
           )}
 
-          {/* TAB 2: TELEGRAM */}
-          {activeTab === "telegram" && (
-            <div className="space-y-3 text-left text-xs text-[#F5F5F7]">
-              <div className="p-3 rounded-xl bg-[#007AFF]/10 border border-[#007AFF]/20 text-[#007AFF] text-[11px] flex items-center justify-between">
-                <span>Setup time: <strong>45 seconds</strong>. Completely free.</span>
-                <span className="uppercase font-semibold bg-[#007AFF]/20 px-2 py-0.5 rounded-full text-[9px]">
-                  Direct Push
-                </span>
-              </div>
-
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
-                <span className="h-5 w-5 rounded-full bg-black/50 text-[#007AFF] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
-                  1
-                </span>
-                <div className="flex-1">
-                  <strong className="text-white block mb-0.5">Find your Telegram Chat ID</strong>
-                  <p className="text-white/60 text-[11px] mb-2">
-                    Open the verified <strong>@userinfobot</strong> on Telegram and tap <strong>Start</strong>.
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <a
-                      href="https://t.me/userinfobot"
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#007AFF] hover:bg-[#0A84FF] text-white font-medium text-[11px] transition-all"
-                    >
-                      <span>Open @userinfobot</span>
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => handleCopy("@userinfobot")}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/[0.08] hover:bg-white/[0.12] text-white/70 hover:text-white border border-white/[0.08] font-medium text-[11px] transition-all"
-                    >
-                      <Copy className="h-3 w-3" />
-                      <span>{copiedBot ? "Copied" : "Copy Name"}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
-                <span className="h-5 w-5 rounded-full bg-black/50 text-[#007AFF] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
-                  2
-                </span>
-                <div className="flex-1">
-                  <strong className="text-white block mb-0.5">Copy the number next to `Id:`</strong>
-                  <p className="text-white/60 text-[11px]">
-                    Copy your numeric user ID (e.g. <code className="text-[#007AFF] font-mono bg-black/40 px-1.5 py-0.5 rounded">6312393356</code>).
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
-                <span className="h-5 w-5 rounded-full bg-black/50 text-[#007AFF] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
-                  3
-                </span>
-                <div className="flex-1">
-                  <strong className="text-white block mb-0.5">Paste into PromptFlow</strong>
-                  <p className="text-white/60 text-[11px]">
-                    Paste your Chat ID into the <strong>Telegram Chat ID</strong> field in Settings or when signing up.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: DISCORD */}
-          {activeTab === "discord" && (
-            <div className="space-y-3 text-left text-xs text-[#F5F5F7]">
-              <div className="p-3 rounded-xl bg-[#5856D6]/10 border border-[#5856D6]/20 text-[#5856D6] text-[11px] flex items-center justify-between">
-                <span>Setup time: <strong>60 seconds</strong>. Rich formatted embeds.</span>
-                <span className="uppercase font-semibold bg-[#5856D6]/20 px-2 py-0.5 rounded-full text-[9px]">
-                  Webhooks
-                </span>
-              </div>
-
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
-                <span className="h-5 w-5 rounded-full bg-black/50 text-[#5856D6] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
-                  1
-                </span>
-                <div className="flex-1">
-                  <strong className="text-white block mb-0.5">Open Discord Channel Settings</strong>
-                  <p className="text-white/60 text-[11px]">
-                    In your Discord server, hover over your target channel and click the <strong>⚙️ Gear icon</strong> (Edit Channel).
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
-                <span className="h-5 w-5 rounded-full bg-black/50 text-[#5856D6] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
-                  2
-                </span>
-                <div className="flex-1">
-                  <strong className="text-white block mb-0.5">Go to Integrations $\rightarrow$ Webhooks</strong>
-                  <p className="text-white/60 text-[11px]">
-                    Click <strong>Integrations</strong>, then click <strong>New Webhook</strong> and click <strong>Copy Webhook URL</strong>.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
-                <span className="h-5 w-5 rounded-full bg-black/50 text-[#5856D6] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
-                  3
-                </span>
-                <div className="flex-1">
-                  <strong className="text-white block mb-0.5">Paste into PromptFlow</strong>
-                  <p className="text-white/60 text-[11px]">
-                    Paste the copied URL into the <strong>Discord Webhook URL</strong> field.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Footer Action */}
-          <div className="mt-6 pt-4 border-t border-white/[0.08] flex items-center justify-between">
-            <span className="text-[11px] text-white/40">
-              All 3 destinations can be updated anytime in Settings.
-            </span>
-            <button
-              type="button"
-              onClick={onClose}
-              className="apple-btn-secondary px-4 py-1.5 text-xs font-medium"
+          {/* Telegram */}
+          {(activeTab === "all" || activeTab === "telegram") && (
+            <section
+              style={{
+                background: "#1C1C1E",
+                border: "1px solid rgba(255,255,255,.08)",
+                borderRadius: "20px",
+                padding: "20px",
+              }}
             >
-              Close
-            </button>
-          </div>
+              <h2 style={{ fontSize: "16px", fontWeight: 600, letterSpacing: "-.01em", marginBottom: "12px", color: "#F5F5F7" }}>
+                Telegram
+              </h2>
+              <ol style={{ paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "8px", color: "#A1A1A6", fontSize: "14px" }}>
+                <li>Search <span className="m" style={{ color: "#0A84FF" }}>@BotFather</span> in Telegram.</li>
+                <li>Send <span className="m" style={{ color: "#0A84FF" }}>/newbot</span> and follow the prompts.</li>
+                <li>Copy the bot token it gives you.</li>
+                <li>Message <span className="m" style={{ color: "#0A84FF" }}>@userinfobot</span> to get your Chat ID.</li>
+                <li>Paste the Chat ID into PromptFlow.</li>
+              </ol>
+            </section>
+          )}
+
+          {/* Gmail / Email */}
+          {(activeTab === "all" || activeTab === "email") && (
+            <section
+              style={{
+                background: "#1C1C1E",
+                border: "1px solid rgba(255,255,255,.08)",
+                borderRadius: "20px",
+                padding: "20px",
+              }}
+            >
+              <h2 style={{ fontSize: "16px", fontWeight: 600, letterSpacing: "-.01em", marginBottom: "12px", color: "#F5F5F7" }}>
+                Gmail / Email
+              </h2>
+              <ol style={{ paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "8px", color: "#A1A1A6", fontSize: "14px" }}>
+                <li>Open Manage your Google Account.</li>
+                <li>Go to Security.</li>
+                <li>Turn on 2-Step Verification.</li>
+                <li>Open App Passwords.</li>
+                <li>Copy the 16-character key into PromptFlow.</li>
+              </ol>
+            </section>
+          )}
         </div>
       </div>
     </div>

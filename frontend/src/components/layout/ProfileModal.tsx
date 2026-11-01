@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Send, Disc as Discord, CheckCircle, Info, User, Mail, LogOut, HelpCircle } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { IntegrationGuideModal } from "./IntegrationGuideModal";
 
@@ -47,35 +47,82 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-2xl p-4 animate-in fade-in duration-200">
-      <div className="bg-[#141416] border border-white/[0.12] rounded-[28px] w-full max-w-md p-6 sm:p-7 shadow-2xl relative text-[#F5F5F7] font-sans">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 50,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "32px",
+        background: "rgba(0,0,0,.8)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+      }}
+    >
+      <div
+        className="c relative text-left"
+        style={{
+          width: "100%",
+          maxWidth: "460px",
+          boxSizing: "border-box",
+          background: "#141416",
+          border: "1px solid rgba(255,255,255,.1)",
+          borderRadius: "28px",
+          padding: "28px",
+          boxShadow: "0 4px 24px rgba(0,0,0,.4)",
+        }}
+      >
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 text-white/50 hover:text-white p-2 rounded-full hover:bg-white/[0.08] transition-colors"
+          style={{
+            position: "absolute",
+            top: "20px",
+            right: "20px",
+            background: "transparent",
+            border: 0,
+            color: "#A1A1A6",
+            minHeight: "auto",
+            padding: "6px",
+            cursor: "pointer",
+          }}
+          aria-label="Close"
         >
-          <X className="h-4 w-4" />
+          <X style={{ width: "18px", height: "18px" }} />
         </button>
 
-        <div className="mb-5 text-left">
-          <h2 className="text-xl font-bold tracking-tight text-white mb-1">
-            Account Preferences
-          </h2>
-          <p className="text-xs text-[#A1A1A6]">
-            Configure your personal profile and push notification destinations.
-          </p>
-        </div>
+        <h1 style={{ fontSize: "24px", fontWeight: 600, letterSpacing: "-.02em", color: "#F5F5F7" }}>
+          Account Preferences
+        </h1>
+        <p className="s" style={{ margin: "4px 0 20px" }}>
+          Configure your personal profile and alert delivery destinations.
+        </p>
 
         {demoMode && (
-          <div className="mb-4 p-3 rounded-xl bg-white/[0.06] border border-white/[0.08] text-xs text-white/80 flex items-center justify-between">
+          <div
+            style={{
+              marginBottom: "16px",
+              padding: "10px 14px",
+              borderRadius: "12px",
+              background: "#1C1C1E",
+              fontSize: "13px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <span>You are in <strong>Guest Demo Mode</strong>.</span>
             {onOpenAuth && (
               <button
                 type="button"
+                className="bl"
                 onClick={() => {
                   onClose();
                   onOpenAuth();
                 }}
-                className="apple-btn-primary px-3 py-1 text-xs"
+                style={{ borderRadius: "999px", padding: "0 14px", minHeight: "32px", fontSize: "12px" }}
               >
                 Sign In
               </button>
@@ -83,120 +130,100 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-3.5 text-left">
+        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-white/70 mb-1">
-              <Mail className="h-3.5 w-3.5 text-white/40" />
-              Account Email
-            </label>
+            <label htmlFor="prof-email">Account Email</label>
             <input
+              id="prof-email"
               type="text"
               disabled
               value={user?.email || profile?.email || "guest@promptflow.demo"}
-              className="w-full bg-[#1C1C1E] border border-white/[0.06] rounded-[12px] px-3.5 py-2 text-xs text-white/40 cursor-not-allowed font-mono"
+              style={{ color: "#8E8E93", cursor: "not-allowed" }}
             />
           </div>
 
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-white/70 mb-1">
-              <User className="h-3.5 w-3.5 text-[#007AFF]" />
-              Display Name
-            </label>
+            <label htmlFor="prof-name">Display Name</label>
             <input
+              id="prof-name"
               type="text"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="e.g. Alex Johnson"
-              className="w-full apple-input px-3.5 py-2 text-xs"
             />
           </div>
 
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-white/70 mb-1">
-              <Send className="h-3.5 w-3.5 text-[#007AFF]" />
-              Telegram Chat ID
-            </label>
+            <label htmlFor="prof-tg">Telegram Chat ID</label>
             <input
+              id="prof-tg"
               type="text"
               value={telegramChatId}
               onChange={(e) => setTelegramChatId(e.target.value)}
               placeholder="e.g. 6312393356"
-              className="w-full apple-input px-3.5 py-2 text-xs"
             />
-            <div className="mt-1 flex items-start gap-1 text-[11px] text-white/40">
-              <Info className="h-3 w-3 text-white/40 shrink-0 mt-0.5" />
-              <span>
-                To get your Chat ID: Message <strong>@userinfobot</strong> on Telegram.
-              </span>
-            </div>
           </div>
 
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-medium text-white/70 mb-1">
-              <Discord className="h-3.5 w-3.5 text-[#5856D6]" />
-              Discord Webhook URL
-            </label>
+            <label htmlFor="prof-dc">Discord Webhook URL</label>
             <input
+              id="prof-dc"
               type="url"
               value={discordWebhookUrl}
               onChange={(e) => setDiscordWebhookUrl(e.target.value)}
               placeholder="https://discord.com/api/webhooks/..."
-              className="w-full apple-input px-3.5 py-2 text-xs"
             />
-            <div className="mt-1 flex items-start gap-1 text-[11px] text-white/40">
-              <Info className="h-3 w-3 text-white/40 shrink-0 mt-0.5" />
-              <span>
-                Discord Server $\rightarrow$ Channel Settings $\rightarrow$ Integrations $\rightarrow$ Webhooks.
-              </span>
-            </div>
           </div>
 
-          <div className="pt-1">
-            <button
-              type="button"
-              onClick={() => setIsGuideOpen(true)}
-              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-full bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-[#007AFF] text-xs font-medium transition-all"
-            >
-              <HelpCircle className="h-3.5 w-3.5" />
-              <span>Step-by-Step Channel Guide</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setIsGuideOpen(true)}
+            style={{
+              background: "transparent",
+              border: 0,
+              padding: 0,
+              color: "#0A84FF",
+              fontSize: "13px",
+              fontWeight: 500,
+              textAlign: "left",
+              minHeight: "auto",
+              cursor: "pointer",
+            }}
+          >
+            How to find Telegram ID &amp; Discord Webhook →
+          </button>
 
-          <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "12px", paddingTop: "14px", borderTop: "1px solid rgba(255,255,255,.08)" }}>
             {!demoMode && user ? (
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="flex items-center gap-1.5 text-xs text-[#FF453A] hover:underline font-medium"
+                className="dg"
+                style={{ borderRadius: "10px", padding: "0 14px", minHeight: "36px", fontSize: "13px" }}
               >
-                <LogOut className="h-3.5 w-3.5" />
-                <span>Sign Out</span>
+                Sign Out
               </button>
             ) : (
               <div />
             )}
 
-            <div className="flex items-center gap-2">
+            <div style={{ display: "flex", gap: "10px" }}>
               <button
                 type="button"
+                className="ol"
                 onClick={onClose}
-                className="apple-btn-secondary px-3.5 py-1.5 text-xs font-medium"
+                style={{ borderRadius: "10px", padding: "0 14px", minHeight: "36px", fontSize: "13px" }}
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saved}
-                className="apple-btn-primary px-4 py-1.5 text-xs font-medium gap-1.5 disabled:opacity-50"
+                className="bl"
+                style={{ borderRadius: "10px", padding: "0 16px", minHeight: "36px", fontSize: "13px", display: "flex", alignItems: "center", gap: "6px" }}
               >
-                {saved ? (
-                  <>
-                    <CheckCircle className="h-3.5 w-3.5" />
-                    <span>Saved!</span>
-                  </>
-                ) : (
-                  <span>Save Preferences</span>
-                )}
+                {saved ? <Check style={{ width: "16px", height: "16px" }} /> : null}
+                <span>{saved ? "Saved" : "Save Preferences"}</span>
               </button>
             </div>
           </div>

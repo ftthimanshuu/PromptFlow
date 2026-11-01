@@ -1,0 +1,30 @@
+/* PromptFlow glass + animation layer. Copy VERBATIM into frontend/src/index.css (convert only if Tailwind requires it). */
+body{background:#05070D}
+@keyframes rise{from{opacity:0;transform:translateY(20px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes drift{50%{transform:translate(36px,-28px) scale(1.07)}}
+@keyframes ping{70%,100%{box-shadow:0 0 0 7px rgba(48,209,88,0)}}
+@keyframes grow{from{transform:scaleX(0)}}
+.orb{position:absolute;border-radius:50%;filter:blur(90px);z-index:-1;animation:drift 24s ease-in-out infinite}
+.o1{width:520px;height:520px;left:-120px;top:-80px;background:#0A3A7A;opacity:.55}
+.o2{width:480px;height:480px;right:-100px;top:34%;background:#12475C;opacity:.4;animation-delay:-8s}
+.o3{width:420px;height:420px;left:30%;bottom:-120px;background:#3A2F63;opacity:.35;animation-delay:-14s}
+.c,.g{box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 8px 32px rgba(0,0,0,.32);animation:rise .9s cubic-bezier(.16,1,.3,1) backwards;transition:transform .6s cubic-bezier(.16,1,.3,1)}
+.c:hover{transform:translateY(-3px)}
+.c:nth-child(2),.g:nth-child(2){animation-delay:.08s}.c:nth-child(3),.g:nth-child(3){animation-delay:.16s}.c:nth-child(4){animation-delay:.24s}.c:nth-child(5){animation-delay:.32s}.c:nth-child(6){animation-delay:.4s}
+h1{animation:rise 1s cubic-bezier(.16,1,.3,1) backwards}
+.stp{animation:rise .8s cubic-bezier(.16,1,.3,1) backwards}.stp:nth-child(1){animation-delay:.8s}.stp:nth-child(2){animation-delay:.95s}.stp:nth-child(3){animation-delay:1.1s}.stp:nth-child(4){animation-delay:1.25s}
+.col{animation:rise .9s cubic-bezier(.16,1,.3,1) backwards}.col:nth-child(2){animation-delay:.1s}.col:nth-child(3){animation-delay:.2s}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#30D158;margin-right:7px;vertical-align:1px;animation:ping 2.4s ease-out infinite}
+button{transition:transform .35s cubic-bezier(.16,1,.3,1),filter .3s}
+button:hover{filter:brightness(1.14)}button:active{transform:scale(.97)}
+.bl{background:rgba(10,113,227,.88)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.sg{position:relative;display:inline-flex;box-sizing:border-box;padding:3px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)}
+.sg input{position:absolute;opacity:0;width:1px;height:1px}
+.sg label{flex:1;position:relative;z-index:1;text-align:center;padding:8px 14px;font:600 13px -apple-system,system-ui,sans-serif;color:#A1A1A6;cursor:pointer;transition:color .3s;white-space:nowrap}
+.sg input:checked+label{color:#F5F5F7}
+.sg input:focus-visible+label{outline:2px solid #0A84FF;border-radius:10px}
+.pl{position:absolute;top:3px;bottom:3px;left:3px;border-radius:10px;background:rgba(255,255,255,.16);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 2px 8px rgba(0,0,0,.25);transition:transform .55s cubic-bezier(.16,1,.3,1)}
+.n2 .pl{width:calc((100% - 6px)/2)}.n3 .pl{width:calc((100% - 6px)/3)}
+.sg input:nth-of-type(2):checked~.pl{transform:translateX(100%)}
+.sg input:nth-of-type(3):checked~.pl{transform:translateX(200%)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

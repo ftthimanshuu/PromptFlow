@@ -1,23 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  Layers,
-  Trash2,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  History,
-  X,
-  Plus,
-  AlertTriangle,
-  Play,
-  RotateCcw,
-  Loader2,
-  Sparkles,
-  Send,
-  Disc as Discord,
-  Mail,
-  Search,
-} from "lucide-react";
+import { Loader2, Play, Search, Trash2, Edit3, CheckCircle2, AlertCircle, Plus } from "lucide-react";
 import type { Automation } from "../../types/pipeline";
 import { api } from "../../lib/api";
 import { supabase } from "../../lib/supabase";
@@ -25,16 +7,19 @@ import { useAuth } from "../../context/AuthContext";
 
 interface AutomationDashboardProps {
   onNewAutomation: () => void;
+  onEditInStudio?: (auto: Automation) => void;
 }
 
-export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({ onNewAutomation }) => {
+export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
+  onNewAutomation,
+  onEditInStudio,
+}) => {
   const { profile, activeCount, setActiveCount, demoMode } = useAuth();
   const [automations, setAutomations] = useState<Automation[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedLogs, setSelectedLogs] = useState<any[] | null>(null);
-  const [logsModalTitle, setLogsModalTitle] = useState("");
   const [quotaError, setQuotaError] = useState<string | null>(null);
   const [runningId, setRunningId] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "active" | "paused">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -51,13 +36,13 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({ onNewA
             id: "demo-auto-1",
             user_id: profile?.id || "demo-user",
             title: "Daily Historical Headlines",
-            description: "Fetches historical events from Wikipedia and sends structured highlights to Discord",
+            description: "Fetches historical events from timeanddate.com / Wikipedia",
             schedule_cron: "0 8 * * *",
             steps: [
-              { step_id: 1, type: "scrape", config: { url: "https://en.wikipedia.org/wiki/Portal:Current_events", max_length: 5000 } },
+              { step_id: 1, type: "scrape", config: { url: "https://www.timeanddate.com/on-this-day/", max_length: 5000 } },
               { step_id: 2, type: "ai_filter", config: { instruction: "Extract headlines", expected_fields: ["headlines", "date"] } },
               { step_id: 3, type: "condition", config: { field: "step_2.headlines.length", operator: ">", value: 0 } },
-              { step_id: 4, type: "notify", config: { channel: "discord", message: "Today's historical events: {{step_2.headlines}}" } },
+              { step_id: 4, type: "notify", config: { channel: "discord", message: "Today's headlines: {{step_2.headlines}}" } },
             ],
             is_active: true,
             last_run_at: new Date(Date.now() - 3600000).toISOString(),
@@ -66,22 +51,54 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({ onNewA
           {
             id: "demo-auto-2",
             user_id: profile?.id || "demo-user",
-            title: "Sony Headphones Price Watcher",
-            description: "Monitors Amazon price and alerts Telegram if below £250",
-            schedule_cron: "0 */2 * * *",
+            title: "Hacker News Top Story",
+            description: "Pings Telegram when top story exceeds threshold",
+            schedule_cron: "0 * * * *",
             steps: [
-              { step_id: 1, type: "scrape", config: { url: "https://amazon.com/dp/B09XS7JWHH" } },
-              { step_id: 2, type: "ai_filter", config: { instruction: "Extract price", expected_fields: ["price"] } },
-              { step_id: 3, type: "condition", config: { field: "step_2.price", operator: "<", value: 250 } },
-              { step_id: 4, type: "notify", config: { channel: "telegram", message: "Price drop: £{{step_2.price}}" } },
+              { step_id: 1, type: "scrape", config: { url: "https://news.ycombinator.com" } },
+              { step_id: 2, type: "ai_filter", config: { instruction: "Extract #1 story title", expected_fields: ["title"] } },
+              { step_id: 3, type: "condition", config: { field: "step_2.title", operator: "!=", value: "" } },
+              { step_id: 4, type: "notify", config: { channel: "telegram", message: "HN Top Story: {{step_2.title}}" } },
             ],
             is_active: true,
             last_run_at: new Date(Date.now() - 7200000).toISOString(),
             created_at: new Date().toISOString(),
           },
+          {
+            id: "demo-auto-3",
+            user_id: profile?.id || "demo-user",
+            title: "Amazon Price Drop Alert",
+            description: "Watches item price and alerts if lower than threshold",
+            schedule_cron: "0 */6 * * *",
+            steps: [
+              { step_id: 1, type: "scrape", config: { url: "https://amazon.in/dp/B09XS7JWHH" } },
+              { step_id: 2, type: "ai_filter", config: { instruction: "Extract price", expected_fields: ["price"] } },
+              { step_id: 3, type: "condition", config: { field: "step_2.price", operator: "<", value: 250 } },
+              { step_id: 4, type: "notify", config: { channel: "email", message: "Price drop: £{{step_2.price}}" } },
+            ],
+            is_active: true,
+            last_run_at: new Date(Date.now() - 14400000).toISOString(),
+            created_at: new Date().toISOString(),
+          },
+          {
+            id: "demo-auto-4",
+            user_id: profile?.id || "demo-user",
+            title: "Weekly Release Notes",
+            description: "Monitors GitHub releases every Monday",
+            schedule_cron: "0 9 * * 1",
+            steps: [
+              { step_id: 1, type: "scrape", config: { url: "https://github.com/nodejs/node/releases" } },
+              { step_id: 2, type: "ai_filter", config: { instruction: "Extract version and changes", expected_fields: ["version"] } },
+              { step_id: 3, type: "condition", config: { field: "step_2.version", operator: "!=", value: "" } },
+              { step_id: 4, type: "notify", config: { channel: "email", message: "Node.js Released: {{step_2.version}}" } },
+            ],
+            is_active: false,
+            last_run_at: new Date(Date.now() - 86400000).toISOString(),
+            created_at: new Date().toISOString(),
+          },
         ];
         setAutomations(mockList);
-        setActiveCount(2);
+        setActiveCount(3);
       } else {
         const { data, error } = await supabase
           .from("automations")
@@ -107,7 +124,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({ onNewA
 
     if (newStatus && activeCount >= 5) {
       setQuotaError(
-        "Active Quota Exceeded: Each user can maintain up to 5 concurrent active automations. Pause an active automation before activating this one."
+        "Quota Limit Reached: Each user can maintain up to 5 concurrent active automations. Please pause one active automation first."
       );
       return;
     }
@@ -120,17 +137,14 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({ onNewA
         prev.map((a) => (a.id === id ? { ...a, is_active: newStatus } : a))
       );
       setActiveCount((prev) => (newStatus ? prev + 1 : Math.max(0, prev - 1)));
+      showToast(newStatus ? "Automation resumed" : "Automation paused");
     } catch (err: any) {
-      if (err.response?.data?.message) {
-        setQuotaError(err.response.data.message);
-      } else {
-        setQuotaError("Failed to update status. Please try again.");
-      }
+      setQuotaError(err.response?.data?.message || "Failed to update status. Please try again.");
     }
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this automation?")) return;
+    if (!confirm("Are you sure you want to delete this automation? This action cannot be undone.")) return;
     try {
       if (!demoMode) {
         await api.deleteAutomation(id);
@@ -140,6 +154,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({ onNewA
       if (deleted?.is_active) {
         setActiveCount((prev) => Math.max(0, prev - 1));
       }
+      showToast("Automation deleted");
     } catch (err: any) {
       alert("Failed to delete automation: " + err.message);
     }
@@ -164,51 +179,28 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({ onNewA
       await fetchAutomations();
 
       if (report.status === "SUCCESS") {
-        alert(`✅ "${auto.title}" completed successfully in ${report.total_duration_ms}ms!`);
+        showToast(`✓ "${auto.title}" ran successfully in ${report.total_duration_ms}ms`);
       } else if (report.status === "SKIPPED") {
-        alert(`ℹ️ Condition evaluated to false. Pipeline stopped cleanly (${report.total_duration_ms}ms).`);
+        showToast(`Condition false: pipeline halted cleanly (${report.total_duration_ms}ms)`);
       } else {
-        alert(`⚠️ Run encountered an error: ${report.error_message || "Step failed"}`);
+        showToast(`Run failed: ${report.error_message || "Error during step execution"}`);
       }
     } catch (err: any) {
-      alert("Manual execution error: " + (err.response?.data?.details || err.message));
+      showToast("Run error: " + (err.response?.data?.details || err.message));
     } finally {
       setRunningId(null);
     }
   }
 
-  async function handleViewLogs(automation: Automation) {
-    setLogsModalTitle(automation.title);
-    if (demoMode) {
-      setSelectedLogs([
-        {
-          id: "log-1",
-          status: "SUCCESS",
-          started_at: automation.last_run_at || new Date().toISOString(),
-          step_results: [
-            { step_id: 1, type: "scrape", status: "SUCCESS", duration_ms: 320 },
-            { step_id: 2, type: "ai_filter", status: "SUCCESS", duration_ms: 780 },
-            { step_id: 3, type: "condition", status: "SUCCESS", duration_ms: 12 },
-            { step_id: 4, type: "notify", status: "SUCCESS", duration_ms: 210 },
-          ],
-        },
-      ]);
-      return;
-    }
-
-    try {
-      const { data } = await supabase
-        .from("execution_logs")
-        .select("*")
-        .eq("automation_id", automation.id)
-        .order("started_at", { ascending: false })
-        .limit(10);
-
-      setSelectedLogs(data || []);
-    } catch {
-      setSelectedLogs([]);
-    }
+  function showToast(msg: string) {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3000);
   }
+
+  const activeAutomationsCount = automations.filter((a) => a.is_active).length;
+  const pausedAutomationsCount = automations.filter((a) => !a.is_active).length;
 
   const filteredAutomations = automations.filter((a) => {
     if (filter === "active" && !a.is_active) return false;
@@ -224,382 +216,267 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({ onNewA
   });
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-10 md:py-14 space-y-8 font-sans selection:bg-[#007AFF]/30 selection:text-white">
-      {/* Prominent Apple Glass Quota Card */}
-      <div className="apple-card p-6 md:p-8 relative overflow-hidden border border-white/[0.12] bg-[#141416]">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-xl text-left">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#34C759] animate-pulse" />
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-white/50">
-                User Capacity & Policy
-              </span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-              Active Automations: <span className="text-[#007AFF]">({activeCount}/5 Active)</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-[#A1A1A6] leading-relaxed">
-              Each user can have <strong>5 active automations</strong> running on background schedules concurrently. Pause or remove an automation to free up a slot.
-            </p>
-          </div>
-
-          {/* Apple Progress Gauge */}
-          <div className="w-full md:w-64 p-4 rounded-xl bg-[#1C1C1E] border border-white/[0.08] space-y-2.5 text-left">
-            <div className="flex items-center justify-between text-xs font-medium">
-              <span className="text-white/70">Slot Capacity</span>
-              <span className={activeCount >= 5 ? "text-[#FF9F0A] font-semibold" : "text-[#34C759] font-semibold"}>
-                {activeCount} of 5 Active
-              </span>
-            </div>
-
-            {/* Apple Progress Bar */}
-            <div className="w-full h-2 bg-black/50 rounded-full overflow-hidden p-0.5 border border-white/[0.08]">
-              <div
-                className={`h-full rounded-full transition-all duration-300 ${
-                  activeCount >= 5 ? "bg-[#FF9F0A]" : "bg-[#34C759]"
-                }`}
-                style={{ width: `${Math.min(100, (activeCount / 5) * 100)}%` }}
-              />
-            </div>
-
-            <div className="flex items-center justify-between text-[11px] text-[#A1A1A6]">
-              <span>{5 - activeCount} Slots Available</span>
-              <span>Max: 5 Active</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quota Exceeded Alert Banner */}
-      {quotaError && (
-        <div className="flex items-start gap-3 p-4 rounded-xl bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 text-xs text-[#FF9F0A] leading-relaxed">
-          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <span className="font-semibold">Quota Notice: </span>
-            <span>{quotaError}</span>
-          </div>
-          <button
-            onClick={() => setQuotaError(null)}
-            className="text-white/50 hover:text-white p-1 rounded-lg"
-          >
-            <X className="h-4 w-4" />
-          </button>
+    <div className="relative min-h-full box-border px-6 py-10 bg-black text-[#F5F5F7]">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 g border border-white/20 rounded-2xl px-5 py-3 text-xs sm:text-sm text-white shadow-2xl backdrop-blur-2xl animate-fade-in flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-[#30D158]" />
+          <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Command & Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            <span>My Automations</span>
+      <main className="max-w-5xl mx-auto text-left space-y-6">
+        {/* Page Title & New Button */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight text-white">
+            Automations
           </h1>
-          <span className="text-xs text-white/50 bg-[#1C1C1E] px-2.5 py-0.5 rounded-full border border-white/[0.08] font-mono">
-            {automations.length} Total
-          </span>
+          <button
+            type="button"
+            className="bl rounded-full px-5 py-2 text-xs sm:text-sm font-semibold flex items-center gap-2 active:scale-95 transition-all min-h-0 shadow-lg shadow-[#0071E3]/25"
+            onClick={onNewAutomation}
+          >
+            <Plus className="w-4 h-4" />
+            <span>New Automation</span>
+          </button>
         </div>
 
-        {/* Filter & Actions */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          {/* Search Field */}
-          <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-white/40" />
+        {/* Quota Banner Section (Mention user active automations 3/5) */}
+        <section className="g rounded-2xl p-6 border border-white/10 shadow-xl relative overflow-hidden">
+          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+            <div>
+              <h2 className="text-base font-semibold text-white tracking-tight">
+                Automation Capacity
+              </h2>
+              <p className="text-xs text-[#A1A1A6] mt-0.5">
+                Each user can have 5 active automations. Pause an automation to activate another.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#30D158]/10 border border-[#30D158]/20">
+              <span className="w-2 h-2 rounded-full bg-[#30D158] shadow-[0_0_8px_#30D158] animate-pulse" />
+              <span className="text-xs font-semibold text-[#30D158]">
+                Active Automations: ({activeCount}/5 Active)
+              </span>
+            </div>
+          </div>
+
+          {/* Apple Progress Bar */}
+          <div className="h-2 rounded-full bg-white/[0.08] overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-[#30D158] to-[#34C759] rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(48,209,88,0.5)]"
+              style={{ width: `${Math.min(100, (activeCount / 5) * 100)}%` }}
+            />
+          </div>
+        </section>
+
+        {/* Quota Alert Banner */}
+        {quotaError && (
+          <div className="p-4 rounded-xl bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 text-xs text-[#FF9F0A] flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{quotaError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setQuotaError(null)}
+              className="text-[#FF9F0A] hover:text-white transition-colors min-h-0 p-0 text-sm font-semibold"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
+        {/* Filter Bar & Search */}
+        <div className="flex items-center justify-between gap-4 flex-wrap pt-2">
+          {/* Search Box */}
+          <div className="relative flex-1 min-w-[260px] max-w-sm">
+            <Search className="w-4 h-4 text-[#8E8E93] absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              aria-label="Filter automations"
+              placeholder="Search automations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className="apple-input pl-8 pr-3 py-1 text-xs w-36 sm:w-44"
+              className="w-full pl-10 pr-4 py-2 rounded-full bg-white/[0.05] border border-white/10 text-xs sm:text-sm text-white placeholder-[#8E8E93] focus:border-[#0A84FF] focus:outline-none transition-all"
             />
           </div>
 
-          {/* Cupertino Segmented Filter */}
-          <div className="flex bg-[#1C1C1E] p-1 rounded-full border border-white/[0.08] text-xs">
+          {/* Segmented Filter Pills */}
+          <div className="flex items-center p-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
             <button
+              type="button"
               onClick={() => setFilter("all")}
-              className={`px-3 py-1 rounded-full font-medium transition-all ${
-                filter === "all" ? "bg-white text-black font-semibold shadow-sm" : "text-white/60 hover:text-white"
+              className={`min-h-0 text-xs font-medium px-3.5 py-1.5 rounded-full transition-all ${
+                filter === "all"
+                  ? "bg-white/[0.12] text-white shadow-sm"
+                  : "text-[#A1A1A6] hover:text-white"
               }`}
             >
               All ({automations.length})
             </button>
             <button
+              type="button"
               onClick={() => setFilter("active")}
-              className={`px-3 py-1 rounded-full font-medium transition-all ${
-                filter === "active" ? "bg-white text-black font-semibold shadow-sm" : "text-white/60 hover:text-white"
+              className={`min-h-0 text-xs font-medium px-3.5 py-1.5 rounded-full transition-all ${
+                filter === "active"
+                  ? "bg-white/[0.12] text-white shadow-sm"
+                  : "text-[#A1A1A6] hover:text-white"
               }`}
             >
-              Active ({automations.filter((a) => a.is_active).length})
+              Active ({activeAutomationsCount})
             </button>
             <button
+              type="button"
               onClick={() => setFilter("paused")}
-              className={`px-3 py-1 rounded-full font-medium transition-all ${
-                filter === "paused" ? "bg-white text-black font-semibold shadow-sm" : "text-white/60 hover:text-white"
+              className={`min-h-0 text-xs font-medium px-3.5 py-1.5 rounded-full transition-all ${
+                filter === "paused"
+                  ? "bg-white/[0.12] text-white shadow-sm"
+                  : "text-[#A1A1A6] hover:text-white"
               }`}
             >
-              Paused ({automations.filter((a) => !a.is_active).length})
+              Paused ({pausedAutomationsCount})
             </button>
           </div>
-
-          <button
-            onClick={() => fetchAutomations()}
-            title="Refresh automations"
-            className="p-2 rounded-full text-white/60 hover:text-white bg-[#1C1C1E] border border-white/[0.08] transition-colors"
-          >
-            <RotateCcw className="h-3.5 w-3.5" />
-          </button>
-
-          <button
-            onClick={onNewAutomation}
-            className="apple-btn-primary px-4 py-1.5 text-xs font-medium gap-1 shadow-sm"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>New Automation</span>
-          </button>
         </div>
-      </div>
 
-      {/* Automations List View */}
-      {loading ? (
-        <div className="text-center py-24 text-white/50 text-xs flex items-center justify-center gap-2">
-          <Loader2 className="h-4 w-4 animate-spin text-[#007AFF]" />
-          <span>Loading automations...</span>
-        </div>
-      ) : filteredAutomations.length === 0 ? (
-        <div className="apple-card p-12 text-center space-y-4">
-          <div className="h-12 w-12 rounded-2xl bg-[#1C1C1E] flex items-center justify-center text-white/40 mx-auto border border-white/[0.08]">
-            <Layers className="h-6 w-6" />
+        {/* Automations Grid */}
+        {loading ? (
+          <div className="text-center py-20 text-[#A1A1A6]">
+            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-[#0A84FF]" />
+            <p className="text-xs font-medium">Loading automations...</p>
           </div>
-          <div>
-            <h3 className="text-base font-semibold text-white">
-              {filter === "all" ? "No Automations Created Yet" : `No ${filter} automations`}
-            </h3>
-            <p className="text-xs text-[#A1A1A6] max-w-sm mx-auto mt-1">
-              Convert any web monitoring task into an automated cron pipeline using plain English in the Studio.
+        ) : filteredAutomations.length === 0 ? (
+          <div className="c text-center py-16 px-6 border border-white/10">
+            <p className="text-base font-semibold text-white">
+              {filter === "all" ? "No automations yet." : `No ${filter} automations found.`}
             </p>
-          </div>
-          <button
-            onClick={onNewAutomation}
-            className="apple-btn-primary px-4 py-2 text-xs font-medium gap-1.5"
-          >
-            <Sparkles className="h-3 w-3" />
-            <span>Open Studio</span>
-          </button>
-        </div>
-      ) : (
-        <div className="space-y-3.5">
-          {filteredAutomations.map((auto) => {
-            const notifyStep = auto.steps?.find((s: any) => s.type === "notify");
-            const channel = (notifyStep?.config?.channel || "discord").toLowerCase();
-
-            return (
-              <div
-                key={auto.id}
-                className="apple-card p-5 md:p-6 transition-all duration-200 hover:border-white/[0.14] flex flex-col md:flex-row items-start md:items-center justify-between gap-5 text-left"
-              >
-                {/* Left Info Column */}
-                <div className="space-y-2 flex-1">
-                  {/* Status Badge IN FRONT of Title (Strict Requirement) */}
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide uppercase transition-all ${
-                        auto.is_active
-                          ? "bg-[#34C759]/15 text-[#34C759] border border-[#34C759]/30"
-                          : "bg-white/[0.06] text-white/50 border border-white/[0.08]"
-                      }`}
-                    >
-                      <span
-                        className={`h-1.5 w-1.5 rounded-full ${
-                          auto.is_active ? "bg-[#34C759] animate-pulse" : "bg-white/40"
-                        }`}
-                      />
-                      {auto.is_active ? "ACTIVE" : "PAUSED"}
-                    </span>
-
-                    <h3 className="text-base font-semibold text-white tracking-tight">
-                      {auto.title}
-                    </h3>
-                  </div>
-
-                  {auto.description && (
-                    <p className="text-xs text-[#A1A1A6] line-clamp-1">{auto.description}</p>
-                  )}
-
-                  {/* Metadata and Destination Pills */}
-                  <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#A1A1A6] pt-0.5">
-                    <span className="flex items-center gap-1 font-mono text-white/80 bg-black/40 px-2 py-0.5 rounded-full border border-white/[0.06]">
-                      <Clock className="h-3 w-3 text-[#007AFF]" />
-                      <span>{auto.schedule_cron}</span>
-                    </span>
-
-                    <span className="flex items-center gap-1 font-medium capitalize text-white/70">
-                      {channel === "discord" && <Discord className="h-3 w-3 text-[#5856D6]" />}
-                      {channel === "telegram" && <Send className="h-3 w-3 text-[#007AFF]" />}
-                      {channel === "email" && <Mail className="h-3 w-3 text-[#34C759]" />}
-                      <span>{channel}</span>
-                    </span>
-
-                    <span className="text-white/20">•</span>
-                    <span>{auto.steps?.length || 4} Steps</span>
-
-                    {auto.last_run_at && (
-                      <>
-                        <span className="text-white/20">•</span>
-                        <span>
-                          Last run:{" "}
-                          {new Date(auto.last_run_at).toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Right Action Controls */}
-                <div className="flex items-center gap-2.5 w-full md:w-auto justify-end border-t md:border-t-0 pt-3 md:pt-0 border-white/[0.08]">
-                  {/* Run Now Trigger Button */}
-                  <button
-                    onClick={() => handleRunNow(auto)}
-                    disabled={runningId === auto.id}
-                    title="Run automation immediately"
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-[#34C759] bg-[#34C759]/10 hover:bg-[#34C759]/20 border border-[#34C759]/25 transition-all disabled:opacity-50"
-                  >
-                    {runningId === auto.id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Play className="h-3 w-3 fill-[#34C759]" />
-                    )}
-                    <span>{runningId === auto.id ? "Running..." : "Run Now"}</span>
-                  </button>
-
-                  {/* Execution Logs Button */}
-                  <button
-                    onClick={() => handleViewLogs(auto)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-white/70 hover:text-white bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] transition-colors"
-                  >
-                    <History className="h-3 w-3" />
-                    <span>Logs</span>
-                  </button>
-
-                  {/* Toggle Active Switch */}
-                  <button
-                    onClick={() => handleToggle(auto.id, auto.is_active)}
-                    title={auto.is_active ? "Pause automation" : "Activate automation"}
-                    className={`w-11 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors ${
-                      auto.is_active ? "bg-[#34C759]" : "bg-white/[0.12]"
-                    }`}
-                  >
-                    <div
-                      className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-150 ${
-                        auto.is_active ? "translate-x-5" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDelete(auto.id)}
-                    title="Delete automation"
-                    className="p-1.5 text-white/40 hover:text-[#FF453A] rounded-full hover:bg-[#FF453A]/10 transition-colors"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Execution Logs Modal */}
-      {selectedLogs && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-2xl p-4 animate-in fade-in duration-200">
-          <div className="bg-[#141416] border border-white/[0.12] rounded-[28px] w-full max-w-xl p-6 md:p-8 shadow-2xl relative max-h-[85vh] flex flex-col text-[#F5F5F7]">
+            <p className="text-xs text-[#A1A1A6] mt-1 max-w-sm mx-auto">
+              Create your first automation in the Studio in plain English.
+            </p>
             <button
-              onClick={() => setSelectedLogs(null)}
-              className="absolute top-5 right-5 text-white/50 hover:text-white p-2 rounded-full hover:bg-white/[0.08] transition-colors"
+              type="button"
+              className="bl rounded-full px-6 py-2.5 text-xs font-semibold mt-5 min-h-0 active:scale-95 transition-all"
+              onClick={onNewAutomation}
             >
-              <X className="h-4 w-4" />
+              Open Studio
             </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {filteredAutomations.map((auto) => {
+              const scrapeStep = auto.steps?.find((s: any) => s.type === "scrape");
+              const notifyStep = auto.steps?.find((s: any) => s.type === "notify");
+              const channel = notifyStep?.config?.channel || "discord";
+              const targetUrl = scrapeStep?.config?.url || "news.ycombinator.com";
 
-            <h2 className="text-lg font-bold text-white tracking-tight">
-              Audit Trail: {logsModalTitle}
-            </h2>
-            <p className="text-xs text-[#A1A1A6] mt-1 mb-4">
-              Real-time records of recent scheduled executions and step outputs.
-            </p>
-
-            <div className="flex-1 overflow-y-auto space-y-3 pr-1">
-              {selectedLogs.length === 0 ? (
-                <div className="text-center py-12 text-xs text-white/40">
-                  No execution logs recorded yet. Run a test now or wait for the cron schedule.
-                </div>
-              ) : (
-                selectedLogs.map((log, idx) => (
-                  <div
-                    key={log.id || idx}
-                    className="bg-[#1C1C1E] p-4 rounded-xl border border-white/[0.06] text-xs space-y-2 text-left"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {log.status === "SUCCESS" && (
-                          <CheckCircle2 className="h-4 w-4 text-[#34C759]" />
-                        )}
-                        {log.status === "SKIPPED" && (
-                          <Clock className="h-4 w-4 text-[#FF9F0A]" />
-                        )}
-                        {log.status === "FAILED" && (
-                          <XCircle className="h-4 w-4 text-[#FF453A]" />
-                        )}
-                        <span className="font-semibold text-white uppercase text-[11px]">
-                          {log.status}
+              return (
+                <div
+                  key={auto.id}
+                  className="c p-5 sm:p-6 border border-white/10 hover:border-white/20 transition-all rounded-2xl flex flex-col justify-between group shadow-lg"
+                >
+                  <div>
+                    {/* Top Header: Active badge in front of title as requested */}
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide shrink-0 ${
+                            auto.is_active
+                              ? "bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/25"
+                              : "bg-white/[0.06] text-[#8E8E93] border border-white/[0.08]"
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              auto.is_active ? "bg-[#30D158]" : "bg-[#8E8E93]"
+                            }`}
+                          />
+                          {auto.is_active ? "ACTIVE" : "PAUSED"}
                         </span>
+                        <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight truncate">
+                          {auto.title}
+                        </h3>
                       </div>
-                      <span className="text-white/40 text-[11px] font-mono">
-                        {new Date(log.started_at).toLocaleString()}
+                    </div>
+
+                    {/* Meta Tags: Schedule & Channel */}
+                    <div className="flex items-center gap-2 flex-wrap text-xs text-[#A1A1A6] mb-3">
+                      <span className="p text-[11px] bg-white/[0.04]">
+                        ◷ {auto.schedule_cron}
+                      </span>
+                      <span className="p text-[11px] bg-white/[0.04] capitalize">
+                        {channel}
+                      </span>
+                      <span className="m text-[11px] text-[#8E8E93] truncate max-w-[200px]">
+                        {targetUrl.replace(/^https?:\/\//, "")}
                       </span>
                     </div>
 
-                    {log.error_message && (
-                      <div className="text-[#FF453A] bg-[#FF453A]/10 p-2.5 rounded-lg border border-[#FF453A]/20 text-xs">
-                        {log.error_message}
-                      </div>
-                    )}
-
-                    {Array.isArray(log.step_results) && (
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono">
-                        {log.step_results.map((stepRes: any) => (
-                          <div
-                            key={stepRes.step_id}
-                            className="bg-black/40 p-2 rounded-lg border border-white/[0.06] text-[10px]"
-                          >
-                            <div className="text-white/40 font-semibold uppercase text-[9px]">
-                              Step {stepRes.step_id} ({stepRes.type})
-                            </div>
-                            <div
-                              className={`font-medium mt-0.5 ${
-                                stepRes.status === "SUCCESS"
-                                  ? "text-[#34C759]"
-                                  : stepRes.status === "SKIPPED"
-                                  ? "text-[#FF9F0A]"
-                                  : "text-[#FF453A]"
-                              }`}
-                            >
-                              {stepRes.status}
-                            </div>
-                            <div className="text-white/40 mt-0.5">{stepRes.duration_ms}ms</div>
-                          </div>
-                        ))}
-                      </div>
+                    {/* Short Description */}
+                    {auto.description && (
+                      <p className="text-xs text-[#8E8E93] line-clamp-1 mb-4 leading-relaxed">
+                        {auto.description}
+                      </p>
                     )}
                   </div>
-                ))
-              )}
-            </div>
+
+                  {/* Clean Bottom Controls: Apple Buttons with Spring Dynamics */}
+                  <div className="pt-4 border-t border-white/[0.06] flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        className="ol rounded-full px-3.5 py-1.5 text-xs font-medium flex items-center gap-1.5 min-h-0 active:scale-95 transition-all"
+                        disabled={runningId === auto.id}
+                        onClick={() => handleRunNow(auto)}
+                      >
+                        {runningId === auto.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin text-white" />
+                        ) : (
+                          <Play className="w-3 h-3 text-white fill-white" />
+                        )}
+                        <span>{runningId === auto.id ? "Running..." : "Run Now"}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className={`rounded-full px-3.5 py-1.5 text-xs font-medium min-h-0 active:scale-95 transition-all ${
+                          auto.is_active
+                            ? "ol text-[#A1A1A6] hover:text-white"
+                            : "bl font-semibold"
+                        }`}
+                        onClick={() => handleToggle(auto.id, auto.is_active)}
+                      >
+                        {auto.is_active ? "Pause" : "Resume"}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onEditInStudio ? onEditInStudio(auto) : onNewAutomation()
+                        }
+                        className="p-1.5 rounded-full hover:bg-white/[0.08] text-[#8E8E93] hover:text-white transition-all min-h-0"
+                        title="Edit in Studio"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(auto.id)}
+                        className="p-1.5 rounded-full hover:bg-[#FF453A]/10 text-[#8E8E93] hover:text-[#FF453A] transition-all min-h-0"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-      )}
+        )}
+      </main>
     </div>
   );
 };

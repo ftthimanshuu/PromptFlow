@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Play, Save, Calendar, CheckCircle, AlertCircle, ArrowDown, Sparkles, Loader2 } from "lucide-react";
+import { Loader2, Play, CheckCircle2 } from "lucide-react";
 import type {
   PipelineExecutionReport,
   PipelineSpecification,
@@ -30,152 +30,98 @@ export const PipelineVisualizer: React.FC<PipelineVisualizerProps> = ({
   const [selectedStep, setSelectedStep] = useState<StepDefinition | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  if (!pipeline) {
-    return (
-      <div className="h-full flex flex-col items-center justify-center p-8 text-center text-white/40 bg-black">
-        <div className="h-14 w-14 rounded-2xl bg-[#141416] border border-white/[0.08] flex items-center justify-center mb-4">
-          <Sparkles className="h-7 w-7 text-white/30" />
-        </div>
-        <h3 className="text-sm font-semibold text-white/90 mb-1">
-          No Pipeline Compiled Yet
-        </h3>
-        <p className="text-xs text-white/50 max-w-sm leading-relaxed">
-          Describe any web monitoring task in the compiler on the left (e.g. tracking prices, notices, or tech updates) to generate an executable pipeline.
-        </p>
-      </div>
-    );
-  }
+  // If no pipeline is compiled yet, show clean fallback placeholder
+  const currentPipeline: PipelineSpecification = pipeline || {
+    title: "Daily Historical Headlines",
+    schedule_cron: "0 8 * * *",
+    steps: [
+      { step_id: 1, type: "scrape", config: { url: "https://www.timeanddate.com/on-this-day/" } },
+      { step_id: 2, type: "ai_filter", config: { instruction: "Extract today's notable historical events as a short list of headlines.", expected_fields: ["headlines", "date", "found"] } },
+      { step_id: 3, type: "condition", config: { field: "step_2.found", operator: "==", value: true } },
+      { step_id: 4, type: "notify", config: { channel: "discord", message: "On this day, Nov 1:\n• 1512: Michelangelo's Sistine Chapel ceiling is first shown\n• 1993: The Maastricht Treaty takes effect" } },
+    ],
+  };
 
   function handleSaveStep(updatedStep: StepDefinition) {
-    if (!pipeline) return;
-    const newSteps = pipeline.steps.map((s) =>
+    const newSteps = currentPipeline.steps.map((s) =>
       s.step_id === updatedStep.step_id ? updatedStep : s
     );
     onUpdatePipeline({
-      ...pipeline,
+      ...currentPipeline,
       steps: newSteps,
     });
   }
 
   return (
-    <div className="h-full flex flex-col justify-between bg-black p-6 overflow-y-auto selection:bg-[#007AFF]/30 selection:text-white">
-      <div>
-        {/* Pipeline Title & Cron Header */}
-        <div className="flex items-start justify-between mb-6 pb-4 border-b border-white/[0.08] text-left">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#007AFF] bg-[#007AFF]/15 px-2 py-0.5 rounded-full border border-[#007AFF]/30">
-                Linear Pipeline
-              </span>
-              <span className="flex items-center gap-1 text-[11px] text-white/60 font-mono bg-[#1C1C1E] px-2 py-0.5 rounded-full border border-white/[0.06]">
-                <Calendar className="h-3 w-3 text-[#007AFF]" />
-                {pipeline.schedule_cron}
-              </span>
-            </div>
-            <h1 className="text-lg font-bold text-white tracking-tight">{pipeline.title}</h1>
-            {pipeline.description && (
-              <p className="text-xs text-[#A1A1A6] mt-0.5">{pipeline.description}</p>
-            )}
-          </div>
-
-          {/* Test Status Banner if available */}
-          {testReport && (
-            <div className="flex flex-col items-end gap-1">
-              <div
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${
-                  testReport.status === "SUCCESS"
-                    ? "bg-[#34C759]/15 border-[#34C759]/30 text-[#34C759]"
-                    : testReport.status === "SKIPPED"
-                    ? "bg-[#FF9F0A]/15 border-[#FF9F0A]/30 text-[#FF9F0A]"
-                    : "bg-[#FF453A]/15 border-[#FF453A]/30 text-[#FF453A]"
-                }`}
-              >
-                {testReport.status === "SUCCESS" && <CheckCircle className="h-3.5 w-3.5" />}
-                {testReport.status === "SKIPPED" && <AlertCircle className="h-3.5 w-3.5" />}
-                {testReport.status === "FAILED" && <AlertCircle className="h-3.5 w-3.5" />}
-                <span>Test: {testReport.status}</span>
-                <span className="text-[10px] opacity-70">({testReport.total_duration_ms}ms)</span>
-              </div>
-            </div>
-          )}
+    <section className="flex flex-col gap-4 text-left">
+      {/* Header Bar */}
+      <div className="g rounded-2xl p-4 sm:px-6 flex items-center justify-between gap-3 flex-wrap border border-white/10 shadow-lg">
+        <div className="flex items-center gap-3">
+          <h2 className="text-base sm:text-lg font-semibold text-white tracking-tight">
+            {currentPipeline.title}
+          </h2>
+          <span className="p m text-xs bg-white/[0.06] text-[#A1A1A6] border-white/10">
+            ◷ {currentPipeline.schedule_cron}
+          </span>
         </div>
 
-        {/* Step Cards Stack */}
-        <div className="space-y-3 relative max-w-xl mx-auto">
-          {pipeline.steps.map((step, idx) => {
-            const stepResult = testReport?.step_results.find(
-              (r) => r.step_id === step.step_id
-            );
-
-            return (
-              <React.Fragment key={step.step_id}>
-                <StepCard
-                  step={step}
-                  result={stepResult}
-                  onClickEdit={() => {
-                    setSelectedStep(step);
-                    setIsDrawerOpen(true);
-                  }}
-                />
-
-                {/* Connecting hairline indicator */}
-                {idx < pipeline.steps.length - 1 && (
-                  <div className="flex justify-center -my-1">
-                    <div className="h-3 w-0.5 bg-white/[0.12] flex items-center justify-center">
-                      <ArrowDown className="h-2.5 w-2.5 text-white/30" />
-                    </div>
-                  </div>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Sticky Bottom Action Toolbar */}
-      <div className="mt-8 pt-4 border-t border-white/[0.08] flex items-center justify-between sticky bottom-0 bg-black/90 backdrop-blur-xl">
-        <div className="text-xs text-white/40 text-left">
-          Click any card to inspect or adjust parameters.
-        </div>
-
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={onTestRun}
+            className="ol rounded-full px-4 py-1.5 text-xs font-medium flex items-center gap-1.5 active:scale-95 transition-all min-h-0"
             disabled={isExecuting}
-            className="apple-btn-secondary px-4 py-2 text-xs font-medium gap-1.5 disabled:opacity-50"
+            onClick={onTestRun}
           >
             {isExecuting ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin text-[#34C759]" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
             ) : (
-              <Play className="h-3 w-3 fill-[#34C759] text-[#34C759]" />
+              <Play className="w-3 h-3 text-white fill-white" />
             )}
-            <span>{isExecuting ? "Executing Sandbox..." : "Test Run"}</span>
+            <span>{isExecuting ? "Executing..." : "Test Run"}</span>
           </button>
 
           <button
             type="button"
-            onClick={onSaveAutomation}
+            className="bl rounded-full px-5 py-1.5 text-xs font-semibold flex items-center gap-1.5 active:scale-95 transition-all min-h-0"
             disabled={isSaving || isExecuting}
-            className="apple-btn-primary px-5 py-2 text-xs font-medium gap-1.5 disabled:opacity-50 shadow-md"
+            onClick={onSaveAutomation}
           >
             {isSaving ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
             ) : (
-              <Save className="h-3.5 w-3.5" />
+              <CheckCircle2 className="w-3.5 h-3.5 text-white" />
             )}
             <span>{isSaving ? "Saving..." : "Save & Activate"}</span>
           </button>
         </div>
       </div>
 
-      {/* Slide-out Parameter Inspector Drawer */}
+      {/* Step Cards 1, 2, 3, 4 */}
+      <div className="space-y-3">
+        {currentPipeline.steps.map((step) => {
+          const stepResult = testReport?.step_results?.find((r) => r.step_id === step.step_id);
+
+          return (
+            <StepCard
+              key={step.step_id}
+              step={step}
+              result={stepResult}
+              onClickEdit={() => {
+                setSelectedStep(step);
+                setIsDrawerOpen(true);
+              }}
+            />
+          );
+        })}
+      </div>
+
+      {/* Step Config Drawer */}
       <StepDrawer
-        step={selectedStep}
         isOpen={isDrawerOpen}
         onClose={() => setIsDrawerOpen(false)}
+        step={selectedStep}
         onSave={handleSaveStep}
       />
-    </div>
+    </section>
   );
 };
