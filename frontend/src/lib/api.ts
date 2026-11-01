@@ -4,23 +4,26 @@ import type {
   PipelineSpecification,
 } from "../types/pipeline";
 
-const isLocal =
-  typeof window !== "undefined" &&
-  (window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1");
+function getBaseUrl(): string {
+  const isLocal =
+    typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1");
 
-const rawBase =
-  import.meta.env.VITE_API_URL ||
-  (isLocal
-    ? "http://localhost:5000/api"
-    : "https://promptflow-31p9.onrender.com/api");
+  let base = (import.meta.env.VITE_API_URL || "").trim();
 
-const API_BASE = rawBase.endsWith("/api")
-  ? rawBase
-  : `${rawBase.replace(/\/+$/, "")}/api`;
+  // If running in cloud production and base is empty or points to localhost, route to Render
+  if (!base || (!isLocal && base.includes("localhost"))) {
+    base = isLocal
+      ? "http://localhost:5000/api"
+      : "https://promptflow-31p9.onrender.com/api";
+  }
+
+  return base.endsWith("/api") ? base : `${base.replace(/\/+$/, "")}/api`;
+}
 
 const apiClient = axios.create({
-  baseURL: API_BASE,
+  baseURL: getBaseUrl(),
   headers: {
     "Content-Type": "application/json",
   },
