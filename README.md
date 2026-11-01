@@ -55,13 +55,13 @@
 ┌────────────────────────────────────────────────────────────────────────┐
 │               NODE.JS + EXPRESS BACKEND ENGINE (TypeScript)            │
 │                                                                        │
-│   1. Compiler Engine: Natural language -> 4-step validated DSL        │
-│   2. Stealth Scraper: Axios + Cheerio with pre-socket SSRF defense    │
-│   3. Semantic AI Extractor: Groq Llama 3.3 70B / Gemini Flash JSON    │
-│   4. Deterministic Evaluator: Safe type-coerced condition engine      │
-│   5. Template Interpolator: {{step_X.field}} with clean bullet lists  │
-│   6. Scheduler Daemon: node-cron background task manager              │
-│   7. Notification Dispatcher: Telegram Bot, Discord, & Nodemailer     │
+│   1. Compiler Engine: Natural language -> 4-step validated DSL         │
+│   2. Stealth Scraper: Axios + Cheerio with pre-socket SSRF defense     │
+│   3. Semantic AI Extractor: Groq Llama 3.3 70B / Gemini Flash JSON     │
+│   4. Deterministic Evaluator: Safe type-coerced condition engine       │
+│   5. Template Interpolator: {{step_X.field}} with clean bullet lists   │
+│   6. Scheduler Daemon: node-cron background task manager               │
+│   7. Notification Dispatcher: Telegram Bot, Discord, & Nodemailer      │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
