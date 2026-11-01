@@ -1,5 +1,6 @@
 import React from "react";
 import { useAuth } from "../../context/AuthContext";
+import { ArrowLeft, User, Plus } from "lucide-react";
 
 export type ViewType = "landing" | "studio" | "dashboard";
 
@@ -18,117 +19,170 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAuth,
   onOpenGuide,
 }) => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const isLoggedIn = Boolean(user);
 
   return (
-    <header className="w-full pt-4 px-4 sm:px-6 sticky top-0 z-50 pointer-events-none">
-      <nav
-        className="g pointer-events-auto"
+    <nav
+      className="g"
+      style={{
+        maxWidth: "920px",
+        margin: "0 auto",
+        borderRadius: "999px",
+        padding: "8px 10px 8px 20px",
+        display: "flex",
+        alignItems: "center",
+        gap: "16px",
+      }}
+    >
+      {/* Brand Logo */}
+      <b
+        onClick={() => setCurrentView("landing")}
         style={{
-          maxWidth: "840px",
-          margin: "0 auto",
-          borderRadius: "999px",
-          padding: "6px 8px 6px 20px",
-          display: "flex",
-          alignItems: "center",
-          gap: "16px",
+          fontSize: "17px",
+          fontWeight: 700,
+          letterSpacing: "-.02em",
+          background: "linear-gradient(#fff,#8E8E93)",
+          WebkitBackgroundClip: "text",
+          backgroundClip: "text",
+          color: "transparent",
+          cursor: "pointer",
         }}
       >
-        {/* Wordmark with gradient clip */}
-        <b
-          onClick={() => setCurrentView("landing")}
-          className="cursor-pointer select-none transition-opacity hover:opacity-85"
+        PromptFlow
+      </b>
+
+      {/* Back button when in Studio */}
+      {currentView === "studio" && (
+        <button
+          type="button"
+          onClick={() => setCurrentView("dashboard")}
+          className="ol"
           style={{
-            fontSize: "17px",
-            letterSpacing: "-.02em",
-            fontWeight: 700,
-            background: "linear-gradient(180deg, #FFFFFF 0%, #A1A1A6 100%)",
-            WebkitBackgroundClip: "text",
-            backgroundClip: "text",
-            color: "transparent",
+            borderRadius: "999px",
+            minHeight: "32px",
+            padding: "0 12px",
+            fontSize: "12px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "5px",
           }}
         >
-          PromptFlow
-        </b>
+          <ArrowLeft style={{ width: "13px", height: "13px" }} />
+          <span>Dashboard</span>
+        </button>
+      )}
 
-        {/* Status indicator */}
-        <div className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#30D158] shadow-[0_0_6px_#30D158]" />
-          <span className="m" style={{ color: "#30D158", fontSize: "11px", fontWeight: 500 }}>
-            Systems Normal
-          </span>
-        </div>
+      <span style={{ flex: 1 }} />
 
-        <span style={{ flex: 1 }} />
-
-        {/* Navigation items - Apple Segmented Style */}
-        <div className="flex items-center gap-1 p-1 rounded-full bg-white/[0.03]">
-          <button
-            type="button"
-            onClick={() => setCurrentView("studio")}
-            className={`min-h-0 text-xs sm:text-[13px] px-3.5 py-1.5 rounded-full font-medium transition-all duration-200 ${
-              currentView === "studio"
-                ? "bg-white/[0.12] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]"
-                : "text-[#A1A1A6] hover:text-white hover:bg-white/[0.05]"
-            }`}
-          >
-            Studio
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setCurrentView("dashboard")}
-            className={`min-h-0 text-xs sm:text-[13px] px-3.5 py-1.5 rounded-full font-medium transition-all duration-200 ${
-              currentView === "dashboard"
-                ? "bg-white/[0.12] text-white shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)]"
-                : "text-[#A1A1A6] hover:text-white hover:bg-white/[0.05]"
-            }`}
-          >
-            Dashboard
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onOpenGuide?.()}
-            className="min-h-0 text-xs sm:text-[13px] px-3.5 py-1.5 rounded-full font-medium text-[#A1A1A6] hover:text-white hover:bg-white/[0.05] transition-all duration-200"
-          >
-            Guide
-          </button>
-        </div>
-
-        {/* Right CTA */}
-        {user ? (
-          <button
-            type="button"
-            className="ol"
-            style={{
-              borderRadius: "999px",
-              padding: "0 16px",
-              minHeight: "36px",
-              fontSize: "13px",
-              fontWeight: 500,
+      {/* Center Links based on current view and auth status */}
+      {currentView === "landing" && (
+        <>
+          {isLoggedIn ? (
+            <a
+              href="/dashboard"
+              onClick={(e) => {
+                e.preventDefault();
+                setCurrentView("dashboard");
+              }}
+              style={{ fontSize: "13px", color: "#F5F5F7", fontWeight: 500 }}
+            >
+              Dashboard
+            </a>
+          ) : null}
+          <a
+            href="/guide"
+            onClick={(e) => {
+              e.preventDefault();
+              onOpenGuide?.();
             }}
-            onClick={onOpenSettings}
+            style={{ fontSize: "13px" }}
           >
-            Profile
-          </button>
-        ) : (
+            Setup Guide
+          </a>
+        </>
+      )}
+
+      {currentView === "dashboard" && (
+        <>
+          <a
+            href="/guide"
+            onClick={(e) => {
+              e.preventDefault();
+              onOpenGuide?.();
+            }}
+            style={{ fontSize: "13px" }}
+          >
+            Setup Guide
+          </a>
           <button
             type="button"
             className="bl"
             style={{
               borderRadius: "999px",
-              padding: "0 18px",
-              minHeight: "36px",
-              fontSize: "13px",
-              fontWeight: 500,
+              minHeight: "32px",
+              padding: "0 14px",
+              fontSize: "12.5px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
             }}
-            onClick={() => onOpenAuth("signin")}
+            onClick={() => setCurrentView("studio")}
           >
-            Sign In
+            <Plus style={{ width: "14px", height: "14px" }} />
+            <span>New Automation</span>
           </button>
-        )}
-      </nav>
-    </header>
+        </>
+      )}
+
+      {currentView === "studio" && (
+        <a
+          href="/guide"
+          onClick={(e) => {
+            e.preventDefault();
+            onOpenGuide?.();
+          }}
+          style={{ fontSize: "13px" }}
+        >
+          Setup Guide
+        </a>
+      )}
+
+      {/* Account Action on Right */}
+      {isLoggedIn ? (
+        <button
+          type="button"
+          className="ol"
+          style={{
+            borderRadius: "999px",
+            minHeight: "34px",
+            padding: "0 14px",
+            fontSize: "12.5px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+          onClick={onOpenSettings}
+        >
+          <User style={{ width: "13px", height: "13px", color: "#0A84FF" }} />
+          <span>{profile?.full_name?.split(" ")[0] || "Profile"}</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className="bl"
+          style={{
+            borderRadius: "999px",
+            minHeight: "34px",
+            padding: "0 18px",
+            fontSize: "13px",
+            fontWeight: 600,
+          }}
+          onClick={() => onOpenAuth("signin")}
+        >
+          Sign In
+        </button>
+      )}
+    </nav>
   );
 };

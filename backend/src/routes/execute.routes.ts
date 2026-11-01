@@ -14,9 +14,16 @@ const TestExecuteRequestSchema = z.object({
       email: z.string().nullable().optional(),
     })
     .optional(),
+  destinations: z
+    .object({
+      telegram_chat_id: z.string().nullable().optional(),
+      discord_webhook_url: z.string().nullable().optional(),
+      email: z.string().nullable().optional(),
+    })
+    .optional(),
 });
 
-router.post("/test", async (req: Request, res: Response): Promise<void> => {
+async function handleExecute(req: Request, res: Response): Promise<void> {
   const parseResult = TestExecuteRequestSchema.safeParse(req.body);
 
   if (!parseResult.success) {
@@ -27,11 +34,12 @@ router.post("/test", async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const { pipeline, user_destinations } = parseResult.data;
+  const { pipeline, user_destinations, destinations } = parseResult.data;
+  const mergedDestinations = user_destinations || destinations;
 
   try {
     const report = await executePipeline(pipeline, {
-      userDestinations: user_destinations,
+      userDestinations: mergedDestinations,
       isTestRun: true,
     });
 
@@ -43,7 +51,10 @@ router.post("/test", async (req: Request, res: Response): Promise<void> => {
       details: err.message,
     });
   }
-});
+}
+
+router.post("/test", handleExecute);
+router.post("/", handleExecute);
 
 export default router;
 

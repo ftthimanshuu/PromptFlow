@@ -16,7 +16,9 @@ app.use(express.json({ limit: "5mb" }));
 // Route registrations
 app.use("/api/health", healthRoutes);
 app.use("/api/compile", compileRoutes);
+app.use("/api/pipeline/compile", compileRoutes);
 app.use("/api/execute", executeRoutes);
+app.use("/api/pipeline/execute", executeRoutes);
 app.use("/api/automations", automationsRoutes);
 
 // Root greeting

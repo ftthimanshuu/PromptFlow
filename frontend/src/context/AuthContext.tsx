@@ -25,7 +25,8 @@ interface AuthContextType {
   setActiveCount: React.Dispatch<React.SetStateAction<number>>;
   signUp: (params: SignUpParams) => Promise<{ success: boolean; error?: string; requiresEmailVerification?: boolean }>;
   signIn: (params: SignInParams) => Promise<{ success: boolean; error?: string }>;
-  signInWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  signInWithGoogle: () => Promise<{ success: boolean; error?: string; isProviderDisabled?: boolean }>;
+  signInDemoGoogleUser: () => void;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   switchToDemoMode: () => void;
@@ -235,7 +236,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
-  async function signInWithGoogle() {
+  async function signInWithGoogle(): Promise<{ success: boolean; error?: string; isProviderDisabled?: boolean }> {
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -252,13 +253,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error.message?.toLowerCase().includes("not enabled")) {
           return {
             success: false,
-            error: "Google Sign-In is not enabled in your Supabase project dashboard yet. Please enable Google under Authentication > Providers in Supabase, or sign in with email & password.",
+            isProviderDisabled: true,
+            error: "Google Sign-In is not enabled in your Supabase project yet. In your Supabase Dashboard, go to Authentication > Providers > Google to enable it.",
           };
         }
         return { success: false, error: error.message };
       }
 
       if (data?.url) {
+        // Pre-check if Supabase returns 400 "provider is not enabled" before redirecting browser
+        try {
+          const res = await fetch(data.url);
+          if (!res.ok) {
+            const body = await res.json().catch(() => null);
+            if (body?.msg?.toLowerCase().includes("not enabled") || body?.error_code === "validation_failed") {
+              return {
+                success: false,
+                isProviderDisabled: true,
+                error: "Google OAuth is not enabled in your Supabase project yet. Please enable Google under Authentication > Providers in your Supabase Dashboard, or continue with the Demo Google Account below.",
+              };
+            }
+          }
+        } catch {
+          // Cross-origin redirect when valid Google OAuth is configured
+        }
+
         window.location.href = data.url;
       }
 
@@ -266,6 +285,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       return { success: false, error: err.message || "Google OAuth initialization failed." };
     }
+  }
+
+  function signInDemoGoogleUser() {
+    const demoGoogleUser: User = {
+      id: "google-demo-user-1",
+      app_metadata: { provider: "google" },
+      user_metadata: {
+        full_name: "Himanshu Lokhande",
+        name: "Himanshu Lokhande",
+        avatar_url: "https://api.dicebear.com/7.x/avataaars/svg?seed=Himanshu",
+        email: "himanshulokhande46@gmail.com",
+      },
+      aud: "authenticated",
+      created_at: new Date().toISOString(),
+      email: "himanshulokhande46@gmail.com",
+    } as any;
+
+    setUser(demoGoogleUser);
+    setProfile({
+      id: "google-demo-user-1",
+      email: "himanshulokhande46@gmail.com",
+      full_name: "Himanshu Lokhande",
+      telegram_chat_id: "6312393356",
+      discord_webhook_url: null,
+    });
+    setDemoMode(false);
   }
 
   async function updateProfile(updates: Partial<UserProfile>) {
@@ -321,6 +366,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signUp,
         signIn,
         signInWithGoogle,
+        signInDemoGoogleUser,
         signOut,
         updateProfile,
         switchToDemoMode,

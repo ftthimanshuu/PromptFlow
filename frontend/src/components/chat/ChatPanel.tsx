@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Loader2, ArrowUp, Sparkles } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import type { ChatMessage } from "../../types/pipeline";
 
 interface ChatPanelProps {
@@ -22,47 +22,95 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   loading,
 }) => {
   const [input, setInput] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatScrollContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (chatScrollContainerRef.current) {
+      chatScrollContainerRef.current.scrollTop = chatScrollContainerRef.current.scrollHeight;
+    }
   }, [messages, loading]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleSubmit(e?: React.FormEvent) {
+    if (e) e.preventDefault();
     if (!input.trim() || loading) return;
     const text = input.trim();
     setInput("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
     await onSendMessage(text);
   }
 
+  function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setInput(e.target.value);
+    e.target.style.height = "auto";
+    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  }
+
   return (
-    <section className="c flex flex-col h-[740px] p-6 text-left border border-white/10 shadow-2xl relative overflow-hidden">
-      {/* Header Bar */}
-      <div className="flex items-center justify-between pb-3 border-b border-white/[0.06]">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-[#0A84FF]" />
-          <h2 className="text-base font-semibold text-white tracking-tight">
-            Conversational Compiler
-          </h2>
-        </div>
+    <section
+      className="c"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: "14px",
+        height: "calc(100vh - 160px)",
+        minHeight: "560px",
+        maxHeight: "780px",
+        padding: "20px",
+        textAlign: "left",
+        boxSizing: "border-box",
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h2 className="k">Conversational Compiler</h2>
         <button
           type="button"
           onClick={onResetChat}
-          className="text-xs text-[#A1A1A6] hover:text-white px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] hover:bg-white/[0.08] transition-all min-h-0"
+          style={{
+            background: "transparent",
+            border: 0,
+            color: "#A1A1A6",
+            fontSize: "12px",
+            minHeight: "auto",
+            padding: 0,
+            cursor: "pointer",
+          }}
         >
           New Prompt
         </button>
       </div>
 
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto space-y-3.5 py-4 pr-1">
+      <div
+        ref={chatScrollContainerRef}
+        style={{ flex: 1, overflowY: "auto", display: "flex", flexDirection: "column", gap: "12px", paddingRight: "4px" }}
+      >
         {messages.map((msg) => {
           if (msg.role === "user") {
             return (
               <div
                 key={msg.id}
-                className="ml-auto max-w-[85%] bg-white/[0.08] backdrop-blur-md border border-white/[0.08] rounded-2xl px-4 py-2.5 text-sm text-white font-normal leading-relaxed shadow-sm"
+                style={{
+                  alignSelf: "flex-end",
+                  maxWidth: "85%",
+                  background: "rgba(255,255,255,.12)",
+                  borderRadius: "18px",
+                  padding: "10px 16px",
+                  color: "#F5F5F7",
+                  fontSize: "13.5px",
+                  lineHeight: 1.5,
+                  wordBreak: "break-word",
+                  whiteSpace: "pre-wrap",
+                }}
               >
                 {msg.content}
               </div>
@@ -72,64 +120,113 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           return (
             <div
               key={msg.id}
-              className="mr-auto max-w-[90%] bg-[#0071E3]/[0.08] backdrop-blur-md border border-[#0071E3]/20 rounded-2xl p-4 text-sm text-[#F5F5F7] leading-relaxed shadow-sm"
+              style={{
+                alignSelf: "flex-start",
+                maxWidth: "90%",
+                padding: "12px 16px",
+                borderRadius: "18px",
+                background: "rgba(10,132,255,.08)",
+                border: "1px solid rgba(10,132,255,.25)",
+                color: "#F5F5F7",
+                fontSize: "13.5px",
+                lineHeight: 1.5,
+                wordBreak: "break-word",
+                whiteSpace: "pre-wrap",
+              }}
             >
-              <div className="flex items-center gap-1.5 mb-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0A84FF]" />
-                <span className="text-[11px] font-semibold tracking-wide text-[#0A84FF] uppercase">
-                  PromptFlow AI
-                </span>
-              </div>
-              <p className="whitespace-pre-wrap">{msg.content}</p>
+              <p className="m" style={{ color: "#0A84FF", marginBottom: "4px" }}>
+                PromptFlow
+              </p>
+              {msg.content}
             </div>
           );
         })}
 
         {loading && (
-          <div className="mr-auto max-w-[90%] bg-[#0071E3]/[0.08] backdrop-blur-md border border-[#0071E3]/20 rounded-2xl p-4 text-xs text-[#A1A1A6] flex items-center gap-2.5 shadow-sm">
-            <Loader2 className="w-4 h-4 text-[#0A84FF] animate-spin" />
-            <span>Analyzing prompt intent and structuring steps...</span>
+          <div
+            style={{
+              alignSelf: "flex-start",
+              maxWidth: "90%",
+              padding: "12px 16px",
+              borderRadius: "18px",
+              background: "rgba(10,132,255,.08)",
+              border: "1px solid rgba(10,132,255,.25)",
+              color: "#A1A1A6",
+              fontSize: "13px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <Loader2 style={{ width: "16px", height: "16px" }} className="animate-spin text-[#0A84FF]" />
+            <span>Analyzing intent and compiling pipeline DSL...</span>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
-      {/* Starter Suggestion Chips */}
-      <div className="pt-2 pb-3">
-        <p className="text-[11px] text-[#8E8E93] mb-2 font-medium">Quick examples:</p>
-        <div className="flex items-center gap-2 flex-wrap">
-          {STARTER_PROMPTS.map((prompt) => (
-            <button
-              key={prompt}
-              type="button"
-              onClick={() => setInput(prompt)}
-              className="text-xs text-[#A1A1A6] hover:text-white px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:border-white/20 transition-all min-h-0 text-left active:scale-95"
-            >
-              {prompt}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Input Field Capsule */}
-      <form onSubmit={handleSubmit} className="relative">
-        <div className="in flex items-center gap-2 p-2 rounded-full border border-white/10 bg-white/[0.05] focus-within:border-[#0A84FF] focus-within:shadow-[0_0_0_3px_rgba(10,132,255,0.2)] transition-all">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Describe what you want to automate..."
-            className="flex-1 bg-transparent border-0 px-4 py-1.5 text-sm text-white placeholder-[#8E8E93] focus:outline-none focus:ring-0"
-          />
+      {/* Starter Prompts */}
+      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+        {STARTER_PROMPTS.map((prompt) => (
           <button
-            type="submit"
-            disabled={!input.trim() || loading}
-            className="bl flex items-center justify-center w-8 h-8 rounded-full min-h-0 p-0 disabled:opacity-40 disabled:cursor-not-allowed active:scale-90 transition-all"
-            title="Compile"
+            key={prompt}
+            type="button"
+            onClick={() => {
+              setInput(prompt);
+              if (textareaRef.current) {
+                textareaRef.current.focus();
+              }
+            }}
+            className="p"
+            style={{ border: 0, cursor: "pointer", minHeight: "auto", textAlign: "left", fontSize: "11.5px" }}
           >
-            <ArrowUp className="w-4 h-4 text-white" />
+            {prompt}
           </button>
+        ))}
+      </div>
+
+      {/* Multi-Line Auto-Wrapping Input Box */}
+      <form onSubmit={handleSubmit} style={{ margin: 0 }}>
+        <div
+          className="in"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-end",
+            gap: "12px",
+            cursor: "text",
+            padding: "8px 12px",
+            borderRadius: "14px",
+          }}
+          onClick={() => textareaRef.current?.focus()}
+        >
+          <textarea
+            ref={textareaRef}
+            id="prompt-input"
+            rows={1}
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Describe an automation in plain English..."
+            style={{
+              flex: 1,
+              background: "transparent",
+              border: 0,
+              padding: "4px 0",
+              color: "#F5F5F7",
+              fontSize: "13.5px",
+              lineHeight: 1.45,
+              outline: 0,
+              resize: "none",
+              boxShadow: "none",
+              fontFamily: 'inherit',
+              overflowY: "auto",
+              maxHeight: "120px",
+              wordBreak: "break-word",
+            }}
+          />
+          <span className="m t" style={{ whiteSpace: "nowrap", fontSize: "11px", marginBottom: "4px" }}>
+            Return ↵ to compile
+          </span>
         </div>
       </form>
     </section>

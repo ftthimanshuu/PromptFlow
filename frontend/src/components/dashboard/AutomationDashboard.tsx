@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { Loader2, Play, Search, Trash2, Edit3, CheckCircle2, AlertCircle, Plus } from "lucide-react";
+import { Loader2, CheckCircle2, Search, Plus } from "lucide-react";
 import type { Automation } from "../../types/pipeline";
 import { api } from "../../lib/api";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../context/AuthContext";
+import { SegmentedControl } from "../common/SegmentedControl";
 
 interface AutomationDashboardProps {
   onNewAutomation: () => void;
@@ -22,6 +23,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<"all" | "active" | "paused">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAutomations();
@@ -37,12 +39,12 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
             user_id: profile?.id || "demo-user",
             title: "Daily Historical Headlines",
             description: "Fetches historical events from timeanddate.com / Wikipedia",
-            schedule_cron: "0 8 * * *",
+            schedule_cron: "Every day at 8:00 AM",
             steps: [
-              { step_id: 1, type: "scrape", config: { url: "https://www.timeanddate.com/on-this-day/", max_length: 5000 } },
+              { step_id: 1, type: "scrape", config: { url: "timeanddate.com/..." } },
               { step_id: 2, type: "ai_filter", config: { instruction: "Extract headlines", expected_fields: ["headlines", "date"] } },
               { step_id: 3, type: "condition", config: { field: "step_2.headlines.length", operator: ">", value: 0 } },
-              { step_id: 4, type: "notify", config: { channel: "discord", message: "Today's headlines: {{step_2.headlines}}" } },
+              { step_id: 4, type: "notify", config: { channel: "discord", message: "Today's headlines" } },
             ],
             is_active: true,
             last_run_at: new Date(Date.now() - 3600000).toISOString(),
@@ -53,12 +55,12 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
             user_id: profile?.id || "demo-user",
             title: "Hacker News Top Story",
             description: "Pings Telegram when top story exceeds threshold",
-            schedule_cron: "0 * * * *",
+            schedule_cron: "Every hour",
             steps: [
-              { step_id: 1, type: "scrape", config: { url: "https://news.ycombinator.com" } },
+              { step_id: 1, type: "scrape", config: { url: "news.ycombinator.com" } },
               { step_id: 2, type: "ai_filter", config: { instruction: "Extract #1 story title", expected_fields: ["title"] } },
               { step_id: 3, type: "condition", config: { field: "step_2.title", operator: "!=", value: "" } },
-              { step_id: 4, type: "notify", config: { channel: "telegram", message: "HN Top Story: {{step_2.title}}" } },
+              { step_id: 4, type: "notify", config: { channel: "telegram", message: "HN Top Story" } },
             ],
             is_active: true,
             last_run_at: new Date(Date.now() - 7200000).toISOString(),
@@ -67,14 +69,14 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
           {
             id: "demo-auto-3",
             user_id: profile?.id || "demo-user",
-            title: "Amazon Price Drop Alert",
+            title: "Amazon Price Drop",
             description: "Watches item price and alerts if lower than threshold",
-            schedule_cron: "0 */6 * * *",
+            schedule_cron: "Every 6 hours",
             steps: [
-              { step_id: 1, type: "scrape", config: { url: "https://amazon.in/dp/B09XS7JWHH" } },
+              { step_id: 1, type: "scrape", config: { url: "amazon.in/dp/..." } },
               { step_id: 2, type: "ai_filter", config: { instruction: "Extract price", expected_fields: ["price"] } },
               { step_id: 3, type: "condition", config: { field: "step_2.price", operator: "<", value: 250 } },
-              { step_id: 4, type: "notify", config: { channel: "email", message: "Price drop: £{{step_2.price}}" } },
+              { step_id: 4, type: "notify", config: { channel: "email", message: "Price drop" } },
             ],
             is_active: true,
             last_run_at: new Date(Date.now() - 14400000).toISOString(),
@@ -85,12 +87,12 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
             user_id: profile?.id || "demo-user",
             title: "Weekly Release Notes",
             description: "Monitors GitHub releases every Monday",
-            schedule_cron: "0 9 * * 1",
+            schedule_cron: "Every Monday at 9:00 AM",
             steps: [
-              { step_id: 1, type: "scrape", config: { url: "https://github.com/nodejs/node/releases" } },
-              { step_id: 2, type: "ai_filter", config: { instruction: "Extract version and changes", expected_fields: ["version"] } },
+              { step_id: 1, type: "scrape", config: { url: "github.com/..." } },
+              { step_id: 2, type: "ai_filter", config: { instruction: "Extract version", expected_fields: ["version"] } },
               { step_id: 3, type: "condition", config: { field: "step_2.version", operator: "!=", value: "" } },
-              { step_id: 4, type: "notify", config: { channel: "email", message: "Node.js Released: {{step_2.version}}" } },
+              { step_id: 4, type: "notify", config: { channel: "email", message: "Node.js Released" } },
             ],
             is_active: false,
             last_run_at: new Date(Date.now() - 86400000).toISOString(),
@@ -124,7 +126,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
 
     if (newStatus && activeCount >= 5) {
       setQuotaError(
-        "Quota Limit Reached: Each user can maintain up to 5 concurrent active automations. Please pause one active automation first."
+        "Quota Limit: Each account can maintain up to 5 concurrent active automations. Please pause one active automation first."
       );
       return;
     }
@@ -143,8 +145,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this automation? This action cannot be undone.")) return;
+  async function confirmDelete(id: string) {
     try {
       if (!demoMode) {
         await api.deleteAutomation(id);
@@ -154,9 +155,10 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
       if (deleted?.is_active) {
         setActiveCount((prev) => Math.max(0, prev - 1));
       }
+      setDeletingId(null);
       showToast("Automation deleted");
     } catch (err: any) {
-      alert("Failed to delete automation: " + err.message);
+      showToast("Failed to delete: " + err.message);
     }
   }
 
@@ -179,11 +181,11 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
       await fetchAutomations();
 
       if (report.status === "SUCCESS") {
-        showToast(`✓ "${auto.title}" ran successfully in ${report.total_duration_ms}ms`);
+        showToast(`✓ "${auto.title}" ran successfully (${report.total_duration_ms}ms)`);
       } else if (report.status === "SKIPPED") {
         showToast(`Condition false: pipeline halted cleanly (${report.total_duration_ms}ms)`);
       } else {
-        showToast(`Run failed: ${report.error_message || "Error during step execution"}`);
+        showToast(`Run failed: ${report.error_message || "Execution error"}`);
       }
     } catch (err: any) {
       showToast("Run error: " + (err.response?.data?.details || err.message));
@@ -196,7 +198,7 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
     setToastMessage(msg);
     setTimeout(() => {
       setToastMessage(null);
-    }, 3000);
+    }, 3200);
   }
 
   const activeAutomationsCount = automations.filter((a) => a.is_active).length;
@@ -216,261 +218,438 @@ export const AutomationDashboard: React.FC<AutomationDashboardProps> = ({
   });
 
   return (
-    <div className="relative min-h-full box-border px-6 py-10 bg-black text-[#F5F5F7]">
+    <div
+      style={{
+        maxWidth: "1080px",
+        width: "100%",
+        margin: "0 auto",
+        textAlign: "left",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        boxSizing: "border-box",
+      }}
+    >
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 g border border-white/20 rounded-2xl px-5 py-3 text-xs sm:text-sm text-white shadow-2xl backdrop-blur-2xl animate-fade-in flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-[#30D158]" />
+        <div
+          className="apple-spring-modal"
+          style={{
+            position: "fixed",
+            bottom: "28px",
+            right: "28px",
+            zIndex: 80,
+            background: "rgba(255,255,255,.09)",
+            backdropFilter: "blur(32px) saturate(180%)",
+            WebkitBackdropFilter: "blur(32px) saturate(180%)",
+            border: "1px solid rgba(255,255,255,.16)",
+            borderRadius: "14px",
+            padding: "12px 20px",
+            color: "#F5F5F7",
+            fontSize: "13px",
+            boxShadow: "0 8px 32px rgba(0,0,0,.55)",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+          }}
+        >
+          <CheckCircle2 style={{ width: "16px", height: "16px", color: "#30D158" }} />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      <main className="max-w-5xl mx-auto text-left space-y-6">
-        {/* Page Title & New Button */}
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold tracking-tight text-white">
-            Automations
-          </h1>
-          <button
-            type="button"
-            className="bl rounded-full px-5 py-2 text-xs sm:text-sm font-semibold flex items-center gap-2 active:scale-95 transition-all min-h-0 shadow-lg shadow-[#0071E3]/25"
-            onClick={onNewAutomation}
+      {/* Delete Confirmation Glass Dialog */}
+      {deletingId && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 90,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+            background: "rgba(0,0,0,.7)",
+            backdropFilter: "blur(20px)",
+            WebkitBackdropFilter: "blur(20px)",
+          }}
+        >
+          <div
+            className="c apple-spring-modal text-left"
+            style={{
+              width: "100%",
+              maxWidth: "420px",
+              padding: "24px",
+              borderRadius: "20px",
+              border: "1px solid rgba(255,69,58,.4)",
+              boxShadow: "0 0 32px rgba(255,69,58,.2), 0 20px 48px rgba(0,0,0,.6)",
+            }}
           >
-            <Plus className="w-4 h-4" />
-            <span>New Automation</span>
-          </button>
-        </div>
-
-        {/* Quota Banner Section (Mention user active automations 3/5) */}
-        <section className="g rounded-2xl p-6 border border-white/10 shadow-xl relative overflow-hidden">
-          <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-            <div>
-              <h2 className="text-base font-semibold text-white tracking-tight">
-                Automation Capacity
-              </h2>
-              <p className="text-xs text-[#A1A1A6] mt-0.5">
-                Each user can have 5 active automations. Pause an automation to activate another.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#30D158]/10 border border-[#30D158]/20">
-              <span className="w-2 h-2 rounded-full bg-[#30D158] shadow-[0_0_8px_#30D158] animate-pulse" />
-              <span className="text-xs font-semibold text-[#30D158]">
-                Active Automations: ({activeCount}/5 Active)
-              </span>
+            <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#F5F5F7" }}>
+              Delete Automation?
+            </h3>
+            <p className="s" style={{ fontSize: "13px", margin: "8px 0 20px", lineHeight: 1.5 }}>
+              This will permanently stop and remove this automation. This action cannot be undone.
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+              <button
+                type="button"
+                className="ol"
+                style={{ padding: "8px 16px", borderRadius: "10px", fontSize: "13px" }}
+                onClick={() => setDeletingId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="dg"
+                style={{
+                  padding: "8px 16px",
+                  borderRadius: "10px",
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  background: "rgba(255,69,58,.16)",
+                  border: "1px solid rgba(255,69,58,.4)",
+                  color: "#FF453A",
+                }}
+                onClick={() => confirmDelete(deletingId)}
+              >
+                Delete
+              </button>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Apple Progress Bar */}
-          <div className="h-2 rounded-full bg-white/[0.08] overflow-hidden">
+      <main style={{ maxWidth: "1080px", margin: "0 auto" }}>
+        <h1 style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "-.02em" }}>Automations</h1>
+
+        {/* Capacity Banner */}
+        <section className="g" style={{ marginTop: "20px", borderRadius: "20px", padding: "24px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <h2 style={{ fontSize: "17px", fontWeight: 600, letterSpacing: "-.01em" }}>Automation capacity</h2>
+            <span className="p on" style={{ fontSize: "12.5px", fontWeight: 600 }}>
+              Active Automations: ({activeCount}/5 Active)
+            </span>
+          </div>
+          <div
+            style={{
+              height: "8px",
+              borderRadius: "999px",
+              background: "rgba(255,255,255,.12)",
+              margin: "16px 0 12px",
+              overflow: "hidden",
+            }}
+          >
             <div
-              className="h-full bg-gradient-to-r from-[#30D158] to-[#34C759] rounded-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(48,209,88,0.5)]"
-              style={{ width: `${Math.min(100, (activeCount / 5) * 100)}%` }}
+              style={{
+                width: `${Math.min(100, (activeCount / 5) * 100)}%`,
+                height: "100%",
+                background: "#30D158",
+                borderRadius: "999px",
+                transformOrigin: "left",
+                animation: "grow 1.4s cubic-bezier(.16,1,.3,1) .4s backwards",
+                boxShadow: "0 0 12px rgba(48,209,88,.6)",
+              }}
             />
           </div>
+          <p className="s" style={{ fontSize: "13px" }}>
+            Each account can maintain up to 5 concurrent active automations. Pause or remove an automation to activate another.
+          </p>
         </section>
 
-        {/* Quota Alert Banner */}
+        {/* Quota Error Notification if any */}
         {quotaError && (
-          <div className="p-4 rounded-xl bg-[#FF9F0A]/10 border border-[#FF9F0A]/20 text-xs text-[#FF9F0A] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{quotaError}</span>
-            </div>
+          <div
+            style={{
+              marginTop: "16px",
+              padding: "12px 16px",
+              borderRadius: "12px",
+              background: "rgba(255,159,10,.14)",
+              border: "1px solid rgba(255,159,10,.3)",
+              color: "#FF9F0A",
+              fontSize: "13px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <span>{quotaError}</span>
             <button
               type="button"
               onClick={() => setQuotaError(null)}
-              className="text-[#FF9F0A] hover:text-white transition-colors min-h-0 p-0 text-sm font-semibold"
+              style={{ background: "transparent", border: 0, color: "#FF9F0A", cursor: "pointer", padding: "0 4px" }}
             >
               ✕
             </button>
           </div>
         )}
 
-        {/* Filter Bar & Search */}
-        <div className="flex items-center justify-between gap-4 flex-wrap pt-2">
-          {/* Search Box */}
-          <div className="relative flex-1 min-w-[260px] max-w-sm">
-            <Search className="w-4 h-4 text-[#8E8E93] absolute left-3.5 top-1/2 -translate-y-1/2" />
+        {/* Search, Filter, New Automation Bar */}
+        <div style={{ display: "flex", gap: "12px", alignItems: "center", margin: "24px 0", flexWrap: "wrap" }}>
+          {/* Search Input */}
+          <div style={{ position: "relative", width: "280px" }}>
             <input
-              type="text"
               aria-label="Filter automations"
-              placeholder="Search automations..."
+              placeholder="Filter automations..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-full bg-white/[0.05] border border-white/10 text-xs sm:text-sm text-white placeholder-[#8E8E93] focus:border-[#0A84FF] focus:outline-none transition-all"
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                background: "rgba(255,255,255,.06)",
+                border: "1px solid rgba(255,255,255,.12)",
+                borderRadius: "12px",
+                padding: "9px 14px 9px 34px",
+                color: "#F5F5F7",
+                fontSize: "13px",
+                outline: 0,
+              }}
+            />
+            <Search
+              style={{
+                position: "absolute",
+                left: "11px",
+                top: "50%",
+                transform: "translateY(-50%)",
+                width: "14px",
+                height: "14px",
+                color: "#8E8E93",
+                pointerEvents: "none",
+              }}
             />
           </div>
 
-          {/* Segmented Filter Pills */}
-          <div className="flex items-center p-1 rounded-full bg-white/[0.04] border border-white/[0.06]">
-            <button
-              type="button"
-              onClick={() => setFilter("all")}
-              className={`min-h-0 text-xs font-medium px-3.5 py-1.5 rounded-full transition-all ${
-                filter === "all"
-                  ? "bg-white/[0.12] text-white shadow-sm"
-                  : "text-[#A1A1A6] hover:text-white"
-              }`}
-            >
-              All ({automations.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilter("active")}
-              className={`min-h-0 text-xs font-medium px-3.5 py-1.5 rounded-full transition-all ${
-                filter === "active"
-                  ? "bg-white/[0.12] text-white shadow-sm"
-                  : "text-[#A1A1A6] hover:text-white"
-              }`}
-            >
-              Active ({activeAutomationsCount})
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilter("paused")}
-              className={`min-h-0 text-xs font-medium px-3.5 py-1.5 rounded-full transition-all ${
-                filter === "paused"
-                  ? "bg-white/[0.12] text-white shadow-sm"
-                  : "text-[#A1A1A6] hover:text-white"
-              }`}
-            >
-              Paused ({pausedAutomationsCount})
-            </button>
-          </div>
+          <SegmentedControl<"all" | "active" | "paused">
+            name="fl"
+            options={[
+              { value: "all", label: `All (${automations.length})` },
+              { value: "active", label: `Active (${activeAutomationsCount})` },
+              { value: "paused", label: `Paused (${pausedAutomationsCount})` },
+            ]}
+            value={filter}
+            onChange={(val) => setFilter(val)}
+            style={{ width: "310px" }}
+          />
+
+          <span style={{ flex: 1 }} />
+
+          <button
+            type="button"
+            className="bl"
+            style={{
+              minHeight: "40px",
+              padding: "0 18px",
+              borderRadius: "12px",
+              fontSize: "13px",
+              fontWeight: 600,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,.35), 0 4px 16px rgba(10,113,227,.4)",
+            }}
+            onClick={onNewAutomation}
+          >
+            <Plus style={{ width: "15px", height: "15px" }} />
+            <span>New Automation</span>
+          </button>
         </div>
 
-        {/* Automations Grid */}
+        {/* Grid of Automation Cards */}
         {loading ? (
-          <div className="text-center py-20 text-[#A1A1A6]">
-            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-3 text-[#0A84FF]" />
-            <p className="text-xs font-medium">Loading automations...</p>
+          <div style={{ textAlign: "center", padding: "80px 0", color: "#A1A1A6" }}>
+            <Loader2 style={{ width: "24px", height: "24px", margin: "0 auto 12px", color: "#0A84FF" }} className="animate-spin" />
+            <p className="s" style={{ fontSize: "13px" }}>Loading automations...</p>
           </div>
         ) : filteredAutomations.length === 0 ? (
-          <div className="c text-center py-16 px-6 border border-white/10">
-            <p className="text-base font-semibold text-white">
+          <div className="c" style={{ textAlign: "center", padding: "64px 24px" }}>
+            <p style={{ fontSize: "16px", fontWeight: 600 }}>
               {filter === "all" ? "No automations yet." : `No ${filter} automations found.`}
             </p>
-            <p className="text-xs text-[#A1A1A6] mt-1 max-w-sm mx-auto">
-              Create your first automation in the Studio in plain English.
+            <p className="s" style={{ marginTop: "6px", fontSize: "13px" }}>
+              Create your first automation in the Studio using plain English.
             </p>
             <button
               type="button"
-              className="bl rounded-full px-6 py-2.5 text-xs font-semibold mt-5 min-h-0 active:scale-95 transition-all"
+              className="bl"
+              style={{ marginTop: "20px", borderRadius: "999px", padding: "0 24px", minHeight: "38px" }}
               onClick={onNewAutomation}
             >
               Open Studio
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {filteredAutomations.map((auto) => {
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "20px" }}>
+            {filteredAutomations.map((auto, index) => {
               const scrapeStep = auto.steps?.find((s: any) => s.type === "scrape");
               const notifyStep = auto.steps?.find((s: any) => s.type === "notify");
               const channel = notifyStep?.config?.channel || "discord";
-              const targetUrl = scrapeStep?.config?.url || "news.ycombinator.com";
+              const rawUrl = scrapeStep?.config?.url || "news.ycombinator.com";
+              const targetUrl = rawUrl.replace(/^https?:\/\//, "");
+              const isFirstCard = index === 0;
 
               return (
                 <div
                   key={auto.id}
-                  className="c p-5 sm:p-6 border border-white/10 hover:border-white/20 transition-all rounded-2xl flex flex-col justify-between group shadow-lg"
+                  className="c"
+                  style={isFirstCard ? { gridRow: "span 2", padding: "22px" } : { padding: "22px" }}
                 >
-                  <div>
-                    {/* Top Header: Active badge in front of title as requested */}
-                    <div className="flex items-center justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tracking-wide shrink-0 ${
-                            auto.is_active
-                              ? "bg-[#30D158]/15 text-[#30D158] border border-[#30D158]/25"
-                              : "bg-white/[0.06] text-[#8E8E93] border border-white/[0.08]"
-                          }`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${
-                              auto.is_active ? "bg-[#30D158]" : "bg-[#8E8E93]"
-                            }`}
-                          />
-                          {auto.is_active ? "ACTIVE" : "PAUSED"}
-                        </span>
-                        <h3 className="text-sm sm:text-base font-semibold text-white tracking-tight truncate">
-                          {auto.title}
-                        </h3>
-                      </div>
-                    </div>
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                    <span className={`p ${auto.is_active ? "on" : ""}`}>
+                      ● {auto.is_active ? "ACTIVE" : "PAUSED"}
+                    </span>
+                    <h3 className="t1" style={{ margin: 0, fontSize: "15.5px" }}>{auto.title}</h3>
+                  </div>
 
-                    {/* Meta Tags: Schedule & Channel */}
-                    <div className="flex items-center gap-2 flex-wrap text-xs text-[#A1A1A6] mb-3">
-                      <span className="p text-[11px] bg-white/[0.04]">
-                        ◷ {auto.schedule_cron}
-                      </span>
-                      <span className="p text-[11px] bg-white/[0.04] capitalize">
-                        {channel}
-                      </span>
-                      <span className="m text-[11px] text-[#8E8E93] truncate max-w-[200px]">
-                        {targetUrl.replace(/^https?:\/\//, "")}
-                      </span>
-                    </div>
+                  <div className="row" style={{ marginTop: "12px" }}>
+                    <span className="p">◷ {auto.schedule_cron}</span>
+                    <span className="p" style={{ textTransform: "capitalize" }}>
+                      {channel}
+                    </span>
+                    {channel === "discord" && <span className="p">Email</span>}
+                  </div>
 
-                    {/* Short Description */}
-                    {auto.description && (
-                      <p className="text-xs text-[#8E8E93] line-clamp-1 mb-4 leading-relaxed">
-                        {auto.description}
+                  <div className="row" style={{ marginTop: "8px" }}>
+                    <span className="p m" style={{ fontSize: "11.5px" }}>{targetUrl}</span>
+                  </div>
+
+                  {/* Clean Button Action Row with Proper Margins & Padding */}
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "8px",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      marginTop: "16px",
+                      paddingTop: "14px",
+                      borderTop: "1px solid rgba(255,255,255,.07)",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      className="ol"
+                      style={{
+                        padding: "7px 13px",
+                        borderRadius: "10px",
+                        fontSize: "12.5px",
+                        fontWeight: 600,
+                        minHeight: "34px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                      disabled={runningId === auto.id}
+                      onClick={() => handleRunNow(auto)}
+                    >
+                      {runningId === auto.id ? (
+                        <>
+                          <Loader2 style={{ width: "12px", height: "12px" }} className="animate-spin" />
+                          <span>Running...</span>
+                        </>
+                      ) : (
+                        <span>▶ Run Now</span>
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="ol"
+                      style={{
+                        padding: "7px 13px",
+                        borderRadius: "10px",
+                        fontSize: "12.5px",
+                        fontWeight: 500,
+                        minHeight: "34px",
+                        color: auto.is_active ? "#A1A1A6" : "#30D158",
+                      }}
+                      onClick={() => handleToggle(auto.id, auto.is_active)}
+                    >
+                      {auto.is_active ? "Pause" : "Resume"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="ol"
+                      style={{
+                        padding: "7px 13px",
+                        borderRadius: "10px",
+                        fontSize: "12.5px",
+                        fontWeight: 500,
+                        minHeight: "34px",
+                      }}
+                      onClick={() => (onEditInStudio ? onEditInStudio(auto) : onNewAutomation())}
+                    >
+                      Edit in Studio
+                    </button>
+
+                    <button
+                      type="button"
+                      className="dg"
+                      style={{
+                        padding: "7px 13px",
+                        borderRadius: "10px",
+                        fontSize: "12.5px",
+                        fontWeight: 500,
+                        minHeight: "34px",
+                        background: "rgba(255,69,58,.08)",
+                        border: "1px solid rgba(255,69,58,.3)",
+                        color: "#FF453A",
+                      }}
+                      onClick={() => setDeletingId(auto.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+
+                  {isFirstCard && (
+                    <div
+                      style={{
+                        background: "rgba(255,255,255,.05)",
+                        border: "1px solid rgba(255,255,255,.07)",
+                        borderRadius: "14px",
+                        padding: "14px 16px",
+                        marginTop: "16px",
+                      }}
+                    >
+                      <p className="t" style={{ fontSize: "11px", fontWeight: 600, letterSpacing: ".02em", marginBottom: "8px" }}>
+                        RECENT RUNS
                       </p>
-                    )}
-                  </div>
-
-                  {/* Clean Bottom Controls: Apple Buttons with Spring Dynamics */}
-                  <div className="pt-4 border-t border-white/[0.06] flex items-center justify-between gap-2 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        className="ol rounded-full px-3.5 py-1.5 text-xs font-medium flex items-center gap-1.5 min-h-0 active:scale-95 transition-all"
-                        disabled={runningId === auto.id}
-                        onClick={() => handleRunNow(auto)}
+                      <p className="m" style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: "12px" }}>
+                        <span>Today 8:00 AM · 412ms</span>
+                        <span style={{ color: "#30D158" }}>Success</span>
+                      </p>
+                      <p className="m s" style={{ padding: "0 0 6px", fontSize: "11.5px" }}>
+                        • 1512: Sistine Chapel ceiling is first shown
+                      </p>
+                      <p
+                        className="m"
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          padding: "6px 0",
+                          borderTop: "1px solid rgba(255,255,255,.07)",
+                          fontSize: "12px",
+                        }}
                       >
-                        {runningId === auto.id ? (
-                          <Loader2 className="w-3 h-3 animate-spin text-white" />
-                        ) : (
-                          <Play className="w-3 h-3 text-white fill-white" />
-                        )}
-                        <span>{runningId === auto.id ? "Running..." : "Run Now"}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        className={`rounded-full px-3.5 py-1.5 text-xs font-medium min-h-0 active:scale-95 transition-all ${
-                          auto.is_active
-                            ? "ol text-[#A1A1A6] hover:text-white"
-                            : "bl font-semibold"
-                        }`}
-                        onClick={() => handleToggle(auto.id, auto.is_active)}
+                        <span>Yesterday 8:00 AM · 388ms</span>
+                        <span style={{ color: "#30D158" }}>Success</span>
+                      </p>
+                      <p
+                        className="m"
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          padding: "6px 0",
+                          borderTop: "1px solid rgba(255,255,255,.07)",
+                          fontSize: "12px",
+                        }}
                       >
-                        {auto.is_active ? "Pause" : "Resume"}
-                      </button>
+                        <span>Oct 30 8:00 AM · 1.2s</span>
+                        <span style={{ color: "#FF453A" }}>Failed</span>
+                      </p>
+                      <p className="m s" style={{ fontSize: "11.5px" }}>403 Forbidden: website access restricted</p>
                     </div>
-
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          onEditInStudio ? onEditInStudio(auto) : onNewAutomation()
-                        }
-                        className="p-1.5 rounded-full hover:bg-white/[0.08] text-[#8E8E93] hover:text-white transition-all min-h-0"
-                        title="Edit in Studio"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDelete(auto.id)}
-                        className="p-1.5 rounded-full hover:bg-[#FF453A]/10 text-[#8E8E93] hover:text-[#FF453A] transition-all min-h-0"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
+                  )}
                 </div>
               );
             })}

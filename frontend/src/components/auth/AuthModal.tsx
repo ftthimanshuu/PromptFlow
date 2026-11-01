@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { IntegrationGuideModal } from "../layout/IntegrationGuideModal";
+import { SegmentedControl } from "../common/SegmentedControl";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,16 +15,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   initialMode = "signin",
 }) => {
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, signInDemoGoogleUser } = useAuth();
   const [mode, setMode] = useState<"signin" | "signup">(initialMode);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isGoogleDisabled, setIsGoogleDisabled] = useState(false);
   const [verificationNotice, setVerificationNotice] = useState<string | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
@@ -34,22 +37,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setEmail("");
     setPassword("");
     setErrorMessage(null);
+    setIsGoogleDisabled(false);
     setVerificationNotice(null);
+    setShowPassword(false);
   }
 
   function handleSwitchMode(newMode: "signin" | "signup") {
     setMode(newMode);
     setErrorMessage(null);
+    setIsGoogleDisabled(false);
     setVerificationNotice(null);
   }
 
   async function handleGoogleSignIn() {
     setErrorMessage(null);
+    setIsGoogleDisabled(false);
     setOauthLoading(true);
     try {
       const res = await signInWithGoogle();
       if (!res.success && res.error) {
         setErrorMessage(res.error);
+        if (res.isProviderDisabled) {
+          setIsGoogleDisabled(true);
+        }
       }
     } catch (err: any) {
       setErrorMessage(err.message || "Could not initialize Google OAuth");
@@ -58,9 +68,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     }
   }
 
+  function handleDemoGoogleLogin() {
+    signInDemoGoogleUser();
+    resetForm();
+    onClose();
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setErrorMessage(null);
+    setIsGoogleDisabled(false);
     setVerificationNotice(null);
     setLoading(true);
 
@@ -118,23 +135,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "32px",
-        background: "rgba(0,0,0,.8)",
+        padding: "24px",
+        background: "rgba(0,0,0,.75)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
       }}
     >
       <div
-        className="c relative text-left"
+        className="c apple-spring-modal relative text-left"
         style={{
           width: "100%",
           maxWidth: "460px",
           boxSizing: "border-box",
-          background: "#141416",
-          border: "1px solid rgba(255,255,255,.1)",
+          background: "rgba(255,255,255,.07)",
+          WebkitBackdropFilter: "blur(28px) saturate(170%)",
+          backdropFilter: "blur(28px) saturate(170%)",
+          border: "1px solid rgba(255,255,255,.12)",
           borderRadius: "28px",
           padding: "28px",
-          boxShadow: "0 4px 24px rgba(0,0,0,.4)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,.2), 0 12px 48px rgba(0,0,0,.5)",
         }}
       >
         {/* Close Button */}
@@ -150,6 +169,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             color: "#A1A1A6",
             minHeight: "auto",
             padding: "6px",
+            cursor: "pointer",
           }}
           aria-label="Close"
         >
@@ -166,40 +186,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </p>
 
         {/* Segmented Switcher */}
-        <div style={{ display: "flex", background: "#1C1C1E", borderRadius: "12px", padding: "3px", marginBottom: "20px" }}>
-          <button
-            type="button"
-            onClick={() => handleSwitchMode("signin")}
-            style={{
-              flex: 1,
-              border: 0,
-              borderRadius: "10px",
-              background: mode === "signin" ? "#2C2C2E" : "transparent",
-              color: mode === "signin" ? "#F5F5F7" : "#A1A1A6",
-              minHeight: "36px",
-              fontSize: "13px",
-              fontWeight: 600,
-            }}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSwitchMode("signup")}
-            style={{
-              flex: 1,
-              border: 0,
-              borderRadius: "10px",
-              background: mode === "signup" ? "#2C2C2E" : "transparent",
-              color: mode === "signup" ? "#F5F5F7" : "#A1A1A6",
-              minHeight: "36px",
-              fontSize: "13px",
-              fontWeight: 600,
-            }}
-          >
-            Create Account
-          </button>
-        </div>
+        <SegmentedControl<"signin" | "signup">
+          name="au"
+          options={[
+            { value: "signin", label: "Sign In" },
+            { value: "signup", label: "Create Account" },
+          ]}
+          value={mode}
+          onChange={(newMode) => handleSwitchMode(newMode)}
+          style={{ width: "100%", marginBottom: "20px" }}
+        />
 
         {/* Google OAuth Button */}
         <button
@@ -234,6 +230,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <span>Continue with Google</span>
         </button>
 
+        {/* Fallback Option if Supabase hasn't enabled Google Auth */}
+        {isGoogleDisabled && (
+          <button
+            type="button"
+            onClick={handleDemoGoogleLogin}
+            style={{
+              width: "100%",
+              marginTop: "8px",
+              borderRadius: "12px",
+              background: "rgba(10,132,255,.14)",
+              color: "#0A84FF",
+              border: "1px solid rgba(10,132,255,.3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              minHeight: "38px",
+              fontSize: "13px",
+              fontWeight: 600,
+            }}
+          >
+            <span>⚡ Continue with Demo Google Account (Himanshu)</span>
+          </button>
+        )}
+
         <p className="s" style={{ textAlign: "center", fontSize: "12px", margin: "16px 0" }}>
           or use email
         </p>
@@ -242,7 +263,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {errorMessage && (
           <p
             style={{
-              marginBottom: "12px",
+              marginBottom: "14px",
               padding: "10px 14px",
               borderRadius: "12px",
               background: "rgba(255,69,58,.12)",
@@ -259,7 +280,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         {verificationNotice && (
           <p
             style={{
-              marginBottom: "12px",
+              marginBottom: "14px",
               padding: "10px 14px",
               borderRadius: "12px",
               background: "rgba(48,209,88,.14)",
@@ -283,12 +304,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="Steve Jobs"
+                placeholder="Himanshu Lokhande"
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  display: "block",
+                  padding: "12px 16px",
+                  fontSize: "14px",
+                  borderRadius: "12px",
+                }}
               />
             </div>
           )}
 
-          <div>
+          <div style={{ marginBottom: "14px" }}>
             <label htmlFor="email">Email</label>
             <input
               id="email"
@@ -297,19 +326,63 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="name@example.com"
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                display: "block",
+                padding: "12px 16px",
+                fontSize: "14px",
+                borderRadius: "12px",
+              }}
             />
           </div>
 
-          <div style={{ marginTop: "14px" }}>
+          <div>
             <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••"
-            />
+            <div style={{ position: "relative", width: "100%" }}>
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••••"
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  display: "block",
+                  padding: "12px 44px 12px 16px",
+                  fontSize: "14px",
+                  borderRadius: "12px",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: "absolute",
+                  right: "12px",
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  background: "transparent",
+                  border: 0,
+                  color: "#8E8E93",
+                  padding: "4px",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: "auto",
+                }}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeOff style={{ width: "18px", height: "18px" }} />
+                ) : (
+                  <Eye style={{ width: "18px", height: "18px" }} />
+                )}
+              </button>
+            </div>
           </div>
 
           <button
@@ -318,12 +391,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             className="bl"
             style={{
               width: "100%",
-              marginTop: "16px",
+              marginTop: "20px",
               borderRadius: "12px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               gap: "8px",
+              minHeight: "44px",
             }}
           >
             {loading ? <Loader2 style={{ width: "16px", height: "16px" }} className="animate-spin" /> : null}
@@ -337,7 +411,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             marginTop: "16px",
             padding: "12px 14px",
             borderRadius: "12px",
-            background: "#1C1C1E",
+            background: "rgba(255,255,255,.06)",
             fontSize: "13px",
           }}
         >

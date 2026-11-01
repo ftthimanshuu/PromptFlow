@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
+import { SegmentedControl } from "../common/SegmentedControl";
 
 interface IntegrationGuideModalProps {
   isOpen: boolean;
@@ -39,11 +40,13 @@ export const IntegrationGuideModal: React.FC<IntegrationGuideModalProps> = ({
           maxHeight: "90vh",
           overflowY: "auto",
           boxSizing: "border-box",
-          background: "#141416",
+          background: "rgba(255,255,255,.07)",
+          WebkitBackdropFilter: "blur(28px) saturate(170%)",
+          backdropFilter: "blur(28px) saturate(170%)",
           border: "1px solid rgba(255,255,255,.1)",
           borderRadius: "28px",
           padding: "28px",
-          boxShadow: "0 4px 24px rgba(0,0,0,.4)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,.2), 0 8px 32px rgba(0,0,0,.35)",
         }}
       >
         {/* Close Button */}
@@ -74,85 +77,26 @@ export const IntegrationGuideModal: React.FC<IntegrationGuideModalProps> = ({
         </p>
 
         {/* Channel Tab Filter */}
-        <div style={{ display: "inline-flex", background: "#1C1C1E", borderRadius: "12px", padding: "3px", marginBottom: "20px" }}>
-          <button
-            type="button"
-            onClick={() => setActiveTab("all")}
-            style={{
-              background: activeTab === "all" ? "#2C2C2E" : "transparent",
-              color: activeTab === "all" ? "#F5F5F7" : "#A1A1A6",
-              padding: "0 18px",
-              minHeight: "34px",
-              border: 0,
-              borderRadius: "9px",
-              fontSize: "13px",
-            }}
-          >
-            All Channels
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("discord")}
-            style={{
-              background: activeTab === "discord" ? "#2C2C2E" : "transparent",
-              color: activeTab === "discord" ? "#F5F5F7" : "#A1A1A6",
-              padding: "0 18px",
-              minHeight: "34px",
-              border: 0,
-              borderRadius: "9px",
-              fontSize: "13px",
-            }}
-          >
-            Discord
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("telegram")}
-            style={{
-              background: activeTab === "telegram" ? "#2C2C2E" : "transparent",
-              color: activeTab === "telegram" ? "#F5F5F7" : "#A1A1A6",
-              padding: "0 18px",
-              minHeight: "34px",
-              border: 0,
-              borderRadius: "9px",
-              fontSize: "13px",
-            }}
-          >
-            Telegram
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("email")}
-            style={{
-              background: activeTab === "email" ? "#2C2C2E" : "transparent",
-              color: activeTab === "email" ? "#F5F5F7" : "#A1A1A6",
-              padding: "0 18px",
-              minHeight: "34px",
-              border: 0,
-              borderRadius: "9px",
-              fontSize: "13px",
-            }}
-          >
-            Gmail / Email
-          </button>
-        </div>
+        <SegmentedControl<"all" | "discord" | "telegram" | "email">
+          name="gd"
+          options={[
+            { value: "all", label: "All Channels" },
+            { value: "discord", label: "Discord" },
+            { value: "telegram", label: "Telegram" },
+            { value: "email", label: "Gmail / Email" },
+          ]}
+          value={activeTab}
+          onChange={(tab) => setActiveTab(tab)}
+          style={{ maxWidth: "520px", marginBottom: "20px" }}
+        />
 
         {/* 3 Step-by-Step Columns Grid */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "16px" }}>
           {/* Discord */}
           {(activeTab === "all" || activeTab === "discord") && (
-            <section
-              style={{
-                background: "#1C1C1E",
-                border: "1px solid rgba(255,255,255,.08)",
-                borderRadius: "20px",
-                padding: "20px",
-              }}
-            >
-              <h2 style={{ fontSize: "16px", fontWeight: 600, letterSpacing: "-.01em", marginBottom: "12px", color: "#F5F5F7" }}>
-                Discord
-              </h2>
-              <ol style={{ paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "8px", color: "#A1A1A6", fontSize: "14px" }}>
+            <section className="col">
+              <h2>Discord</h2>
+              <ol>
                 <li>Create a Discord Server (or pick yours).</li>
                 <li>Open Channel Settings.</li>
                 <li>Go to Integrations.</li>
@@ -164,18 +108,9 @@ export const IntegrationGuideModal: React.FC<IntegrationGuideModalProps> = ({
 
           {/* Telegram */}
           {(activeTab === "all" || activeTab === "telegram") && (
-            <section
-              style={{
-                background: "#1C1C1E",
-                border: "1px solid rgba(255,255,255,.08)",
-                borderRadius: "20px",
-                padding: "20px",
-              }}
-            >
-              <h2 style={{ fontSize: "16px", fontWeight: 600, letterSpacing: "-.01em", marginBottom: "12px", color: "#F5F5F7" }}>
-                Telegram
-              </h2>
-              <ol style={{ paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "8px", color: "#A1A1A6", fontSize: "14px" }}>
+            <section className="col">
+              <h2>Telegram</h2>
+              <ol>
                 <li>Search <span className="m" style={{ color: "#0A84FF" }}>@BotFather</span> in Telegram.</li>
                 <li>Send <span className="m" style={{ color: "#0A84FF" }}>/newbot</span> and follow the prompts.</li>
                 <li>Copy the bot token it gives you.</li>
@@ -187,22 +122,14 @@ export const IntegrationGuideModal: React.FC<IntegrationGuideModalProps> = ({
 
           {/* Gmail / Email */}
           {(activeTab === "all" || activeTab === "email") && (
-            <section
-              style={{
-                background: "#1C1C1E",
-                border: "1px solid rgba(255,255,255,.08)",
-                borderRadius: "20px",
-                padding: "20px",
-              }}
-            >
-              <h2 style={{ fontSize: "16px", fontWeight: 600, letterSpacing: "-.01em", marginBottom: "12px", color: "#F5F5F7" }}>
-                Gmail / Email
-              </h2>
-              <ol style={{ paddingLeft: "20px", display: "flex", flexDirection: "column", gap: "8px", color: "#A1A1A6", fontSize: "14px" }}>
+            <section className="col">
+              <h2>Gmail / Email</h2>
+              <ol>
                 <li>Open Manage your Google Account.</li>
                 <li>Go to Security.</li>
                 <li>Turn on 2-Step Verification.</li>
                 <li>Open App Passwords.</li>
+                <li>Generate an App Password (16-character) for "Mail".</li>
                 <li>Copy the 16-character key into PromptFlow.</li>
               </ol>
             </section>

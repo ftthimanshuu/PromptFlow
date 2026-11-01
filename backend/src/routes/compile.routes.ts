@@ -7,8 +7,8 @@ const router = Router();
 
 const CompileRequestSchema = z.object({
   prompt: z.string().min(1, "Prompt cannot be empty"),
-  session_id: z.string().uuid().optional(),
-  user_id: z.string().uuid().optional(),
+  session_id: z.string().optional(),
+  user_id: z.string().optional(),
 });
 
 router.post("/", async (req: Request, res: Response): Promise<void> => {

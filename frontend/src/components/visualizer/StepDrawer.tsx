@@ -45,61 +45,105 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-md animate-in fade-in duration-200 font-sans selection:bg-[#007AFF]/30 selection:text-white">
-      <div className="w-full max-w-md bg-[#141416] border-l border-white/[0.12] h-full p-6 sm:p-7 shadow-2xl overflow-y-auto flex flex-col justify-between text-[#F5F5F7]">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 90,
+        display: "flex",
+        justifyContent: "flex-end",
+        background: "rgba(0,0,0,.6)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+      }}
+    >
+      <div
+        className="apple-spring-modal"
+        style={{
+          width: "100%",
+          maxWidth: "460px",
+          height: "100%",
+          background: "rgba(18, 20, 28, 0.92)",
+          backdropFilter: "blur(32px) saturate(180%)",
+          WebkitBackdropFilter: "blur(32px) saturate(180%)",
+          borderLeft: "1px solid rgba(255,255,255,.12)",
+          boxShadow: "-12px 0 48px rgba(0,0,0,.65)",
+          padding: "24px 28px",
+          boxSizing: "border-box",
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          color: "#F5F5F7",
+          textAlign: "left",
+        }}
+      >
         <div>
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-6 text-left">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingBottom: "16px",
+              borderBottom: "1px solid rgba(255,255,255,.08)",
+              marginBottom: "20px",
+            }}
+          >
             <div>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#007AFF]">
+              <span className="p" style={{ fontSize: "11px", color: "#0A84FF", background: "rgba(10,132,255,.12)" }}>
                 Step {step.step_id} Parameter Inspector
               </span>
-              <h3 className="text-base font-bold text-white capitalize mt-0.5">
+              <h3 style={{ fontSize: "17px", fontWeight: 600, color: "#F5F5F7", marginTop: "4px", textTransform: "capitalize" }}>
                 Configure {step.type.replace("_", " ")}
               </h3>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-full text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors"
+              style={{
+                background: "transparent",
+                border: 0,
+                color: "#A1A1A6",
+                minHeight: "auto",
+                padding: "6px",
+                cursor: "pointer",
+              }}
+              aria-label="Close"
             >
-              <X className="h-4 w-4" />
+              <X style={{ width: "18px", height: "18px" }} />
             </button>
           </div>
 
-          <form id="step-edit-form" onSubmit={handleSubmit} className="space-y-4 text-left">
+          <form id="step-edit-form" onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             {/* Scrape Config Form */}
             {step.type === "scrape" && (
               <>
                 <div>
-                  <label className="block text-xs font-medium text-white/70 mb-1">
-                    Target Website URL
-                  </label>
+                  <label>Target Website URL</label>
                   <input
                     type="url"
                     required
                     value={config.url || ""}
                     onChange={(e) => setConfig({ ...config, url: e.target.value })}
                     placeholder="https://example.com/notices"
-                    className="w-full apple-input px-3 py-2 text-xs font-mono"
+                    style={{ width: "100%", fontFamily: "ui-monospace, Menlo, monospace", fontSize: "13px" }}
                   />
-                  <span className="text-[10px] text-white/40 mt-1 block">
-                    Public URL to fetch and evaluate.
+                  <span className="s" style={{ fontSize: "11px", marginTop: "4px", display: "block" }}>
+                    Public URL fetched and evaluated during execution.
                   </span>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-white/70 mb-1">
-                    Max Scraped Characters
-                  </label>
+                  <label>Max Scraped Characters</label>
                   <input
                     type="number"
                     value={config.max_length || 10000}
                     onChange={(e) =>
                       setConfig({ ...config, max_length: parseInt(e.target.value, 10) })
                     }
-                    className="w-full apple-input px-3 py-2 text-xs font-mono"
+                    style={{ width: "100%", fontFamily: "ui-monospace, Menlo, monospace", fontSize: "13px" }}
                   />
-                  <span className="text-[10px] text-white/40 mt-1 block">
-                    Default 10,000 characters to prevent token overflow.
+                  <span className="s" style={{ fontSize: "11px", marginTop: "4px", display: "block" }}>
+                    Limits input token consumption during AI analysis.
                   </span>
                 </div>
               </>
@@ -109,22 +153,18 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
             {step.type === "ai_filter" && (
               <>
                 <div>
-                  <label className="block text-xs font-medium text-white/70 mb-1">
-                    Extraction Prompt
-                  </label>
+                  <label>Extraction Prompt</label>
                   <textarea
                     rows={4}
                     required
                     value={config.instruction || ""}
                     onChange={(e) => setConfig({ ...config, instruction: e.target.value })}
                     placeholder="e.g. Scan notices for exam schedules. Return found, title, and link."
-                    className="w-full apple-input px-3 py-2 text-xs leading-relaxed"
+                    style={{ width: "100%", fontSize: "13px", lineHeight: 1.5 }}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-white/70 mb-1">
-                    Expected JSON Keys (comma separated)
-                  </label>
+                  <label>Expected JSON Keys (comma-separated)</label>
                   <input
                     type="text"
                     value={Array.isArray(config.expected_fields) ? config.expected_fields.join(", ") : ""}
@@ -135,10 +175,10 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                       })
                     }
                     placeholder="found, title, price, link"
-                    className="w-full apple-input px-3 py-2 text-xs font-mono"
+                    style={{ width: "100%", fontFamily: "ui-monospace, Menlo, monospace", fontSize: "13px" }}
                   />
-                  <span className="text-[10px] text-white/40 mt-1 block">
-                    Structured keys extracted by Groq / Gemini models.
+                  <span className="s" style={{ fontSize: "11px", marginTop: "4px", display: "block" }}>
+                    Structured schema attributes output by the AI model.
                   </span>
                 </div>
               </>
@@ -148,25 +188,24 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
             {step.type === "condition" && (
               <>
                 <div>
-                  <label className="block text-xs font-medium text-white/70 mb-1">
-                    Field Path
-                  </label>
+                  <label>Field Path</label>
                   <input
                     type="text"
                     required
                     value={config.field || ""}
                     onChange={(e) => setConfig({ ...config, field: e.target.value })}
                     placeholder="step_2.found"
-                    className="w-full apple-input px-3 py-2 text-xs font-mono"
+                    style={{ width: "100%", fontFamily: "ui-monospace, Menlo, monospace", fontSize: "13px" }}
                   />
-                  <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-white/40">Suggestions:</span>
+                  <div style={{ display: "flex", gap: "6px", alignItems: "center", flexWrap: "wrap", marginTop: "8px" }}>
+                    <span className="s" style={{ fontSize: "11px" }}>Suggestions:</span>
                     {["step_2.found", "step_2.price", "step_2.title"].map((s) => (
                       <button
                         key={s}
                         type="button"
                         onClick={() => setConfig({ ...config, field: s })}
-                        className="text-[10px] bg-[#1C1C1E] hover:bg-white/[0.1] text-[#007AFF] px-2 py-0.5 rounded-full border border-white/[0.06]"
+                        className="p m"
+                        style={{ border: 0, cursor: "pointer", color: "#0A84FF", background: "rgba(10,132,255,.12)" }}
                       >
                         {s}
                       </button>
@@ -175,13 +214,20 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-white/70 mb-1">
-                    Comparison Operator
-                  </label>
+                  <label>Comparison Operator</label>
                   <select
                     value={config.operator || "=="}
                     onChange={(e) => setConfig({ ...config, operator: e.target.value })}
-                    className="w-full apple-input px-3 py-2 text-xs"
+                    style={{
+                      width: "100%",
+                      boxSizing: "border-box",
+                      background: "rgba(255,255,255,.06)",
+                      border: "1px solid rgba(255,255,255,.1)",
+                      borderRadius: "12px",
+                      padding: "10px 14px",
+                      color: "#F5F5F7",
+                      font: "13px -apple-system, system-ui, sans-serif",
+                    }}
                   >
                     <option value="==">== (Equals)</option>
                     <option value="!=">!= (Not Equals)</option>
@@ -194,9 +240,7 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-white/70 mb-1">
-                    Comparison Target Value
-                  </label>
+                  <label>Comparison Target Value</label>
                   <input
                     type="text"
                     required
@@ -209,21 +253,23 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                       else setConfig({ ...config, value: val });
                     }}
                     placeholder="true"
-                    className="w-full apple-input px-3 py-2 text-xs"
+                    style={{ width: "100%", fontSize: "13px" }}
                   />
-                  <div className="mt-1.5 flex items-center gap-1.5">
-                    <span className="text-[10px] text-white/40">Quick sets:</span>
+                  <div style={{ display: "flex", gap: "6px", alignItems: "center", marginTop: "8px" }}>
+                    <span className="s" style={{ fontSize: "11px" }}>Quick values:</span>
                     <button
                       type="button"
                       onClick={() => setConfig({ ...config, value: true })}
-                      className="text-[10px] bg-[#1C1C1E] text-[#34C759] px-2 py-0.5 rounded-full border border-white/[0.06]"
+                      className="p on"
+                      style={{ border: 0, cursor: "pointer" }}
                     >
                       true
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfig({ ...config, value: false })}
-                      className="text-[10px] bg-[#1C1C1E] text-[#FF453A] px-2 py-0.5 rounded-full border border-white/[0.06]"
+                      className="p"
+                      style={{ border: 0, cursor: "pointer", color: "#FF453A", background: "rgba(255,69,58,.16)" }}
                     >
                       false
                     </button>
@@ -236,13 +282,20 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
             {step.type === "notify" && (
               <>
                 <div>
-                  <label className="block text-xs font-medium text-white/70 mb-1">
-                    Channel Destination
-                  </label>
+                  <label>Channel Destination</label>
                   <select
                     value={config.channel || "telegram"}
                     onChange={(e) => setConfig({ ...config, channel: e.target.value })}
-                    className="w-full apple-input px-3 py-2 text-xs"
+                    style={{
+                      width: "100%",
+                      boxSizing: "border-box",
+                      background: "rgba(255,255,255,.06)",
+                      border: "1px solid rgba(255,255,255,.1)",
+                      borderRadius: "12px",
+                      padding: "10px 14px",
+                      color: "#F5F5F7",
+                      font: "13px -apple-system, system-ui, sans-serif",
+                    }}
                   >
                     <option value="discord">Discord (Channel Webhook)</option>
                     <option value="telegram">Telegram (Bot Direct Message)</option>
@@ -251,20 +304,19 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-medium text-white/70">
-                      Message Template
-                    </label>
-                    <span className="text-[10px] text-white/40">Insert variable</span>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                    <label style={{ margin: 0 }}>Message Template</label>
+                    <span className="s" style={{ fontSize: "11px" }}>Insert variable</span>
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 mb-2">
+                  <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginBottom: "8px" }}>
                     {["step_2.title", "step_2.price", "step_2.link", "step_1.url"].map((v) => (
                       <button
                         key={v}
                         type="button"
                         onClick={() => handleInsertVariable(v)}
-                        className="text-[10px] bg-[#1C1C1E] hover:bg-white/[0.1] text-[#007AFF] px-2 py-0.5 rounded-full border border-white/[0.06]"
+                        className="p m"
+                        style={{ border: 0, cursor: "pointer", color: "#0A84FF", background: "rgba(10,132,255,.12)" }}
                       >
                         + {`{{${v}}}`}
                       </button>
@@ -277,7 +329,7 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     value={config.message || ""}
                     onChange={(e) => setConfig({ ...config, message: e.target.value })}
                     placeholder="Alert: {{step_2.title}} is updated!"
-                    className="w-full apple-input px-3 py-2 text-xs leading-relaxed font-mono"
+                    style={{ width: "100%", fontFamily: "ui-monospace, Menlo, monospace", fontSize: "12.5px", lineHeight: 1.6 }}
                   />
                 </div>
               </>
@@ -286,20 +338,39 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-4 border-t border-white/[0.08] flex items-center justify-end gap-2.5">
+        <div
+          style={{
+            paddingTop: "16px",
+            borderTop: "1px solid rgba(255,255,255,.08)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            gap: "10px",
+          }}
+        >
           <button
             type="button"
             onClick={onClose}
-            className="apple-btn-secondary px-3.5 py-1.5 text-xs font-medium"
+            className="ol"
+            style={{ padding: "8px 16px", borderRadius: "10px", fontSize: "13px" }}
           >
             Cancel
           </button>
           <button
             type="submit"
             form="step-edit-form"
-            className="apple-btn-primary px-4 py-1.5 text-xs font-medium gap-1.5"
+            className="bl"
+            style={{
+              padding: "8px 18px",
+              borderRadius: "10px",
+              fontSize: "13px",
+              fontWeight: 600,
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
           >
-            <Check className="h-3.5 w-3.5" />
+            <Check style={{ width: "14px", height: "14px" }} />
             <span>Apply Changes</span>
           </button>
         </div>

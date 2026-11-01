@@ -62,16 +62,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
       }}
     >
       <div
-        className="c relative text-left"
+        className="c apple-spring-modal relative text-left"
         style={{
           width: "100%",
           maxWidth: "460px",
           boxSizing: "border-box",
-          background: "#141416",
-          border: "1px solid rgba(255,255,255,.1)",
+          background: "rgba(255,255,255,.07)",
+          WebkitBackdropFilter: "blur(28px) saturate(170%)",
+          backdropFilter: "blur(28px) saturate(170%)",
+          border: "1px solid rgba(255,255,255,.12)",
           borderRadius: "28px",
           padding: "28px",
-          boxShadow: "0 4px 24px rgba(0,0,0,.4)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,.2), 0 12px 48px rgba(0,0,0,.5)",
         }}
       >
         <button
@@ -106,7 +108,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
               marginBottom: "16px",
               padding: "10px 14px",
               borderRadius: "12px",
-              background: "#1C1C1E",
+              background: "rgba(255,255,255,.06)",
               fontSize: "13px",
               display: "flex",
               justifyContent: "space-between",
@@ -130,19 +132,30 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
           </div>
         )}
 
-        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-          <div>
+        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "14px", width: "100%", boxSizing: "border-box" }}>
+          <div style={{ width: "100%", boxSizing: "border-box" }}>
             <label htmlFor="prof-email">Account Email</label>
             <input
               id="prof-email"
               type="text"
               disabled
               value={user?.email || profile?.email || "guest@promptflow.demo"}
-              style={{ color: "#8E8E93", cursor: "not-allowed" }}
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                display: "block",
+                padding: "12px 16px",
+                fontSize: "14px",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,.03)",
+                border: "1px solid rgba(255,255,255,.08)",
+                color: "#8E8E93",
+                cursor: "not-allowed",
+              }}
             />
           </div>
 
-          <div>
+          <div style={{ width: "100%", boxSizing: "border-box" }}>
             <label htmlFor="prof-name">Display Name</label>
             <input
               id="prof-name"
@@ -150,10 +163,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="e.g. Alex Johnson"
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                display: "block",
+                padding: "12px 16px",
+                fontSize: "14px",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,.06)",
+                border: "1px solid rgba(255,255,255,.12)",
+                color: "#F5F5F7",
+              }}
             />
           </div>
 
-          <div>
+          <div style={{ width: "100%", boxSizing: "border-box" }}>
             <label htmlFor="prof-tg">Telegram Chat ID</label>
             <input
               id="prof-tg"
@@ -161,10 +185,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
               value={telegramChatId}
               onChange={(e) => setTelegramChatId(e.target.value)}
               placeholder="e.g. 6312393356"
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                display: "block",
+                padding: "12px 16px",
+                fontSize: "14px",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,.06)",
+                border: "1px solid rgba(255,255,255,.12)",
+                color: "#F5F5F7",
+              }}
             />
           </div>
 
-          <div>
+          <div style={{ width: "100%", boxSizing: "border-box" }}>
             <label htmlFor="prof-dc">Discord Webhook URL</label>
             <input
               id="prof-dc"
@@ -172,6 +207,17 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
               value={discordWebhookUrl}
               onChange={(e) => setDiscordWebhookUrl(e.target.value)}
               placeholder="https://discord.com/api/webhooks/..."
+              style={{
+                width: "100%",
+                boxSizing: "border-box",
+                display: "block",
+                padding: "12px 16px",
+                fontSize: "14px",
+                borderRadius: "12px",
+                background: "rgba(255,255,255,.06)",
+                border: "1px solid rgba(255,255,255,.12)",
+                color: "#F5F5F7",
+              }}
             />
           </div>
 
