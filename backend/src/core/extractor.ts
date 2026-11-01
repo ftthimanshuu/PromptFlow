@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { config } from "../config.js";
 import { AIFilterConfig } from "../types/dsl.js";
 
@@ -6,23 +7,74 @@ export interface ExtractionResult {
   [key: string]: unknown;
 }
 
+async function extractWithGroq(
+  aiConfig: AIFilterConfig,
+  scrapedText: string,
+  apiKey: string
+): Promise<ExtractionResult> {
+  const groq = new Groq({ apiKey });
+
+  const prompt = `
+You are the PromptFlow Semantic Web Extractor.
+Extract the requested information from the provided web text strictly according to the instruction.
+
+INSTRUCTION:
+${aiConfig.instruction}
+
+EXPECTED OUTPUT FIELDS:
+You MUST output a valid JSON object containing these exact fields:
+${JSON.stringify(aiConfig.expected_fields)}
+
+RULES:
+1. Return ONLY a valid JSON object. Do not include markdown codeblocks or explanations.
+2. If a value cannot be found in the text, provide a sensible default (e.g. found: false, title: null, price: null).
+3. Do not invent or hallucinate information not present in the text.
+
+WEBPAGE TEXT:
+"""
+${scrapedText}
+"""
+`;
+
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages: [
+      { role: "system", content: "You are a precise JSON-only semantic web extraction engine." },
+      { role: "user", content: prompt },
+    ],
+    response_format: { type: "json_object" },
+    temperature: 0.1,
+  });
+
+  const rawText = completion.choices[0]?.message?.content?.trim() || "";
+  const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+  return JSON.parse(sanitized);
+}
+
 /**
- * Extracts structured data from raw webpage text using Gemini Flash semantic reasoning.
+ * Extracts structured data from raw webpage text using Groq Llama 3.3 or Gemini Flash.
  */
 export async function extractWithAI(
   aiConfig: AIFilterConfig,
   scrapedText: string
 ): Promise<ExtractionResult> {
-  const apiKey = config.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    return mockExtraction(aiConfig, scrapedText);
+  // Strategy 1: Groq (ultra fast, ~200-300ms)
+  if (config.GROQ_API_KEY) {
+    try {
+      console.log("[EXTRACTOR] Extracting via Groq (llama-3.3-70b-versatile)...");
+      return await extractWithGroq(aiConfig, scrapedText, config.GROQ_API_KEY);
+    } catch (groqErr: any) {
+      console.warn("[EXTRACTOR] Groq extraction failed, falling back to Gemini:", groqErr.message);
+    }
   }
 
-  const modelCandidates = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-flash-latest"];
-  const genAI = new GoogleGenerativeAI(apiKey);
+  // Strategy 2: Gemini
+  const apiKey = config.GEMINI_API_KEY;
+  if (apiKey) {
+    const modelCandidates = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-flash-latest"];
+    const genAI = new GoogleGenerativeAI(apiKey);
 
-  const prompt = `
+    const prompt = `
 You are the PromptFlow Semantic Web Extractor.
 Extract the requested information from the provided web text strictly according to the instruction.
 
@@ -44,26 +96,29 @@ ${scrapedText}
 """
 `;
 
-  for (const modelName of modelCandidates) {
-    try {
-      const model = genAI.getGenerativeModel({
-        model: modelName,
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.1,
-        },
-      });
+    for (const modelName of modelCandidates) {
+      try {
+        console.log(`[EXTRACTOR] Extracting via Gemini model: ${modelName}...`);
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.1,
+          },
+        });
 
-      const result = await model.generateContent(prompt);
-      const rawResponse = result.response.text().trim();
-      const sanitized = rawResponse.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-      return JSON.parse(sanitized);
-    } catch (err: any) {
-      console.warn(`[EXTRACTOR] Model ${modelName} call failed:`, err.message);
+        const result = await model.generateContent(prompt);
+        const rawResponse = result.response.text().trim();
+        const sanitized = rawResponse.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+        return JSON.parse(sanitized);
+      } catch (err: any) {
+        console.warn(`[EXTRACTOR] Model ${modelName} call failed:`, err.message);
+      }
     }
   }
 
-  // Graceful fallback
+  // Strategy 3: Graceful mock fallback
+  console.warn("[EXTRACTOR] All remote LLMs unavailable. Using mock extraction.");
   return mockExtraction(aiConfig, scrapedText);
 }
 

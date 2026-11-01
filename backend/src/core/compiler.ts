@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 import { config } from "../config.js";
 import { PipelineSpecification } from "../types/dsl.js";
 
@@ -75,54 +76,101 @@ RULES:
  * Compiles a natural language user prompt into an executable pipeline JSON.
  * Supports multi-turn conversational context via chatHistory.
  */
+async function compileWithGroq(
+  prompt: string,
+  chatHistory: ChatMessage[],
+  apiKey: string
+): Promise<CompileResult> {
+  const groq = new Groq({ apiKey });
+
+  const messages: any[] = [
+    {
+      role: "system",
+      content: COMPILER_SYSTEM_PROMPT,
+    },
+    ...chatHistory.map((m) => ({
+      role: m.role === "user" ? ("user" as const) : ("assistant" as const),
+      content: m.content,
+    })),
+    {
+      role: "user",
+      content: prompt,
+    },
+  ];
+
+  const completion = await groq.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
+    messages,
+    response_format: { type: "json_object" },
+    temperature: 0.2,
+  });
+
+  const rawText = completion.choices[0]?.message?.content?.trim() || "";
+  const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+  return JSON.parse(sanitized);
+}
+
+/**
+ * Compiles a natural language user prompt into an executable pipeline JSON.
+ * Supports multi-turn conversational context via chatHistory.
+ * Uses Groq (ultra-fast Llama 3.3 70B) or Gemini (3.5 Flash) with seamless automatic failover.
+ */
 export async function compilePrompt(
   prompt: string,
   chatHistory: ChatMessage[] = []
 ): Promise<CompileResult> {
-  const apiKey = config.GEMINI_API_KEY;
-
-  if (!apiKey) {
-    console.warn("[COMPILER FALLBACK] GEMINI_API_KEY not set. Using smart heuristic mock.");
-    return mockCompile(prompt);
-  }
-
-  const modelCandidates = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-flash-latest"];
-  const genAI = new GoogleGenerativeAI(apiKey);
-
-  const formattedHistory = chatHistory.map((msg) => ({
-    role: msg.role === "user" ? "user" : "model",
-    parts: [{ text: msg.content }],
-  }));
-
-  for (const modelName of modelCandidates) {
+  // Strategy 1: If Groq API Key is configured, use Groq (blazing fast, ~300ms, zero 503 errors)
+  if (config.GROQ_API_KEY) {
     try {
-      const model = genAI.getGenerativeModel({
-        model: modelName,
-        systemInstruction: COMPILER_SYSTEM_PROMPT,
-        generationConfig: {
-          responseMimeType: "application/json",
-          temperature: 0.2,
-        },
-      });
-
-      const chat = model.startChat({
-        history: formattedHistory,
-      });
-
-      const response = await chat.sendMessage(prompt);
-      const rawText = response.response.text().trim();
-
-      const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-      const parsed: CompileResult = JSON.parse(sanitized);
-      return parsed;
-    } catch (err: any) {
-      console.warn(`[COMPILER] Model ${modelName} call failed:`, err.message);
-      // Try next candidate
+      console.log("[COMPILER] Compiling via Groq (llama-3.3-70b-versatile)...");
+      const result = await compileWithGroq(prompt, chatHistory, config.GROQ_API_KEY);
+      return result;
+    } catch (groqErr: any) {
+      console.warn("[COMPILER] Groq compilation failed, falling back to Gemini:", groqErr.message);
     }
   }
 
-  // Graceful fallback if Google API is temporarily overloaded (503 / 404 / 429)
-  console.warn("[COMPILER] All Gemini models temporarily unavailable. Using heuristic fallback.");
+  // Strategy 2: Google Gemini (gemini-3.5-flash / gemini-3.8-flash)
+  const geminiApiKey = config.GEMINI_API_KEY;
+  if (geminiApiKey) {
+    const modelCandidates = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-flash-latest"];
+    const genAI = new GoogleGenerativeAI(geminiApiKey);
+
+    const formattedHistory = chatHistory.map((msg) => ({
+      role: msg.role === "user" ? "user" : "model",
+      parts: [{ text: msg.content }],
+    }));
+
+    for (const modelName of modelCandidates) {
+      try {
+        console.log(`[COMPILER] Trying Gemini model: ${modelName}...`);
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          systemInstruction: COMPILER_SYSTEM_PROMPT,
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.2,
+          },
+        });
+
+        const chat = model.startChat({
+          history: formattedHistory,
+        });
+
+        const response = await chat.sendMessage(prompt);
+        const rawText = response.response.text().trim();
+
+        const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+        const parsed: CompileResult = JSON.parse(sanitized);
+        return parsed;
+      } catch (err: any) {
+        console.warn(`[COMPILER] Model ${modelName} call failed:`, err.message);
+      }
+    }
+  }
+
+  // Strategy 3: Graceful heuristic fallback if all remote APIs are offline/overloaded
+  console.warn("[COMPILER] All remote LLM models unavailable. Using heuristic fallback.");
   return mockCompile(prompt);
 }
 
