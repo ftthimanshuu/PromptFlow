@@ -47,26 +47,27 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md p-6 shadow-2xl relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-2xl p-4 animate-in fade-in duration-200">
+      <div className="bg-[#141416] border border-white/[0.12] rounded-[28px] w-full max-w-md p-6 sm:p-7 shadow-2xl relative text-[#F5F5F7] font-sans">
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors"
+          className="absolute top-5 right-5 text-white/50 hover:text-white p-2 rounded-full hover:bg-white/[0.08] transition-colors"
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4" />
         </button>
 
-        <div className="mb-5">
-          <h2 className="text-xl font-bold text-white mb-1">Account & Alert Preferences</h2>
-          <p className="text-xs text-slate-400">
-            Manage your personal profile and automation notification destinations.
+        <div className="mb-5 text-left">
+          <h2 className="text-xl font-bold tracking-tight text-white mb-1">
+            Account Preferences
+          </h2>
+          <p className="text-xs text-[#A1A1A6]">
+            Configure your personal profile and push notification destinations.
           </p>
         </div>
 
-        {/* Demo Mode Notice */}
         {demoMode && (
-          <div className="mb-4 p-3 rounded-xl bg-sky-500/10 border border-sky-500/20 text-xs text-sky-300 flex items-center justify-between">
-            <span>You are currently in <strong>Guest Demo Mode</strong>.</span>
+          <div className="mb-4 p-3 rounded-xl bg-white/[0.06] border border-white/[0.08] text-xs text-white/80 flex items-center justify-between">
+            <span>You are in <strong>Guest Demo Mode</strong>.</span>
             {onOpenAuth && (
               <button
                 type="button"
@@ -74,7 +75,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
                   onClose();
                   onOpenAuth();
                 }}
-                className="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-[11px] shadow-sm transition-all"
+                className="apple-btn-primary px-3 py-1 text-xs"
               >
                 Sign In
               </button>
@@ -82,25 +83,23 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-4">
-          {/* Email Info (read-only) */}
+        <form onSubmit={handleSave} className="space-y-3.5 text-left">
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 mb-1.5">
-              <Mail className="h-3.5 w-3.5 text-slate-400" />
+            <label className="flex items-center gap-1.5 text-xs font-medium text-white/70 mb-1">
+              <Mail className="h-3.5 w-3.5 text-white/40" />
               Account Email
             </label>
             <input
               type="text"
               disabled
               value={user?.email || profile?.email || "guest@promptflow.demo"}
-              className="w-full bg-slate-950/60 border border-slate-800/80 rounded-xl px-3.5 py-2 text-xs text-slate-400 cursor-not-allowed"
+              className="w-full bg-[#1C1C1E] border border-white/[0.06] rounded-[12px] px-3.5 py-2 text-xs text-white/40 cursor-not-allowed font-mono"
             />
           </div>
 
-          {/* Full Name */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 mb-1.5">
-              <User className="h-3.5 w-3.5 text-sky-400" />
+            <label className="flex items-center gap-1.5 text-xs font-medium text-white/70 mb-1">
+              <User className="h-3.5 w-3.5 text-[#007AFF]" />
               Display Name
             </label>
             <input
@@ -108,14 +107,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               placeholder="e.g. Alex Johnson"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500"
+              className="w-full apple-input px-3.5 py-2 text-xs"
             />
           </div>
 
-          {/* Telegram Settings */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 mb-1.5">
-              <Send className="h-3.5 w-3.5 text-sky-400" />
+            <label className="flex items-center gap-1.5 text-xs font-medium text-white/70 mb-1">
+              <Send className="h-3.5 w-3.5 text-[#007AFF]" />
               Telegram Chat ID
             </label>
             <input
@@ -123,20 +121,19 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
               value={telegramChatId}
               onChange={(e) => setTelegramChatId(e.target.value)}
               placeholder="e.g. 6312393356"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500"
+              className="w-full apple-input px-3.5 py-2 text-xs"
             />
-            <div className="mt-1 flex items-start gap-1 text-[11px] text-slate-500">
-              <Info className="h-3 w-3 text-slate-400 shrink-0 mt-0.5" />
+            <div className="mt-1 flex items-start gap-1 text-[11px] text-white/40">
+              <Info className="h-3 w-3 text-white/40 shrink-0 mt-0.5" />
               <span>
-                To find your Chat ID: Message <strong>@userinfobot</strong> on Telegram and copy the `Id`.
+                To get your Chat ID: Message <strong>@userinfobot</strong> on Telegram.
               </span>
             </div>
           </div>
 
-          {/* Discord Settings */}
           <div>
-            <label className="flex items-center gap-1.5 text-xs font-semibold text-slate-300 mb-1.5">
-              <Discord className="h-3.5 w-3.5 text-indigo-400" />
+            <label className="flex items-center gap-1.5 text-xs font-medium text-white/70 mb-1">
+              <Discord className="h-3.5 w-3.5 text-[#5856D6]" />
               Discord Webhook URL
             </label>
             <input
@@ -144,35 +141,33 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
               value={discordWebhookUrl}
               onChange={(e) => setDiscordWebhookUrl(e.target.value)}
               placeholder="https://discord.com/api/webhooks/..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500"
+              className="w-full apple-input px-3.5 py-2 text-xs"
             />
-            <div className="mt-1 flex items-start gap-1 text-[11px] text-slate-500">
-              <Info className="h-3 w-3 text-slate-400 shrink-0 mt-0.5" />
+            <div className="mt-1 flex items-start gap-1 text-[11px] text-white/40">
+              <Info className="h-3 w-3 text-white/40 shrink-0 mt-0.5" />
               <span>
                 Discord Server $\rightarrow$ Channel Settings $\rightarrow$ Integrations $\rightarrow$ Webhooks.
               </span>
             </div>
           </div>
 
-          {/* Setup Guide Button */}
           <div className="pt-1">
             <button
               type="button"
               onClick={() => setIsGuideOpen(true)}
-              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-950 border border-slate-800 hover:border-slate-700 text-sky-400 hover:text-sky-300 text-xs font-semibold transition-all"
+              className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-full bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-[#007AFF] text-xs font-medium transition-all"
             >
               <HelpCircle className="h-3.5 w-3.5" />
-              <span>How to find Telegram ID & Discord Webhook?</span>
+              <span>Step-by-Step Channel Guide</span>
             </button>
           </div>
 
-          {/* Actions */}
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+          <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between">
             {!demoMode && user ? (
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 font-medium px-2 py-1.5 rounded-lg hover:bg-rose-500/10 transition-colors"
+                className="flex items-center gap-1.5 text-xs text-[#FF453A] hover:underline font-medium"
               >
                 <LogOut className="h-3.5 w-3.5" />
                 <span>Sign Out</span>
@@ -185,22 +180,22 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, onO
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3.5 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                className="apple-btn-secondary px-3.5 py-1.5 text-xs font-medium"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saved}
-                className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold bg-sky-600 text-white hover:bg-sky-500 shadow-md shadow-sky-600/20 transition-all disabled:bg-emerald-600"
+                className="apple-btn-primary px-4 py-1.5 text-xs font-medium gap-1.5 disabled:opacity-50"
               >
                 {saved ? (
                   <>
-                    <CheckCircle className="h-4 w-4" />
-                    Saved!
+                    <CheckCircle className="h-3.5 w-3.5" />
+                    <span>Saved!</span>
                   </>
                 ) : (
-                  "Save Preferences"
+                  <span>Save Preferences</span>
                 )}
               </button>
             </div>

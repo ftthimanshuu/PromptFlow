@@ -111,12 +111,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             `A confirmation link has been sent to ${email}. Please check your inbox to complete registration!`
           );
         } else {
-          // Success & session active
           resetForm();
           onClose();
         }
       } else {
-        // Sign In
         const res = await signIn({ email, password });
         if (!res.success) {
           setErrorMessage(res.error || "Invalid email or password.");
@@ -133,46 +131,43 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl relative overflow-hidden my-8">
-        {/* Glow Header Accent */}
-        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500" />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-2xl p-4 overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-[#141416] border border-white/[0.12] rounded-[28px] w-full max-w-md shadow-2xl relative overflow-hidden my-8 text-[#F5F5F7]">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors"
+          className="absolute top-5 right-5 text-white/50 hover:text-white p-2 rounded-full hover:bg-white/[0.08] transition-colors"
           aria-label="Close"
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4" />
         </button>
 
-        <div className="p-7">
+        <div className="p-7 sm:p-8">
           {/* Header */}
-          <div className="mb-6">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 text-xs font-semibold mb-2">
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>AI-Powered Micro Automations</span>
+          <div className="mb-6 text-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.06] text-white/80 border border-white/[0.08] text-xs font-medium mb-3">
+              <Sparkles className="h-3 w-3 text-[#007AFF]" />
+              <span>PromptFlow Account</span>
             </div>
-            <h2 className="text-2xl font-extrabold text-white tracking-tight">
-              {mode === "signin" ? "Welcome back to PromptFlow" : "Create your account"}
+            <h2 className="text-2xl font-bold tracking-tight text-white">
+              {mode === "signin" ? "Welcome back" : "Create your account"}
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-[#A1A1A6] mt-1.5 max-w-xs mx-auto">
               {mode === "signin"
-                ? "Sign in to manage and schedule your intelligent monitors"
-                : "Register in seconds with Telegram & Discord alert integrations"}
+                ? "Sign in to access your active monitors and execution history."
+                : "Register to get 5 active automations included free forever."}
             </p>
           </div>
 
-          {/* Mode Switch Tabs */}
-          <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 mb-6">
+          {/* Cupertino Segmented Control */}
+          <div className="flex bg-[#1C1C1E] p-1 rounded-full border border-white/[0.08] mb-6">
             <button
               type="button"
               onClick={() => handleSwitchMode("signin")}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all duration-150 ${
                 mode === "signin"
-                  ? "bg-slate-800 text-white shadow-sm"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-white/60 hover:text-white"
               }`}
             >
               Sign In
@@ -180,10 +175,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="button"
               onClick={() => handleSwitchMode("signup")}
-              className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex-1 py-1.5 text-xs font-medium rounded-full transition-all duration-150 ${
                 mode === "signup"
-                  ? "bg-sky-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-white/60 hover:text-white"
               }`}
             >
               Create Account
@@ -195,10 +190,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             type="button"
             onClick={handleGoogleSignIn}
             disabled={oauthLoading || loading}
-            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 hover:border-slate-600 text-slate-200 text-sm font-semibold transition-all shadow-sm disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-3 py-2.5 px-4 rounded-[12px] bg-white/[0.08] hover:bg-white/[0.12] border border-white/[0.08] text-white text-xs font-medium transition-all shadow-sm disabled:opacity-50"
           >
             {oauthLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
+              <Loader2 className="h-4 w-4 animate-spin text-[#007AFF]" />
             ) : (
               <svg className="h-4 w-4" viewBox="0 0 24 24">
                 <path
@@ -222,19 +217,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <span>Continue with Google</span>
           </button>
 
-          {/* Divider */}
+          {/* Hairline Divider */}
           <div className="relative my-5">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-800" />
+              <div className="w-full border-t border-white/[0.08]" />
             </div>
-            <div className="relative flex justify-center text-[11px] uppercase tracking-wider text-slate-500 font-semibold">
-              <span className="bg-slate-900 px-3">or with email</span>
+            <div className="relative flex justify-center text-[10px] uppercase tracking-wider text-[#6E6E73] font-semibold">
+              <span className="bg-[#141416] px-3">or continue with email</span>
             </div>
           </div>
 
           {/* Error Banner */}
           {errorMessage && (
-            <div className="mb-4 flex items-start gap-2.5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs">
+            <div className="mb-4 flex items-start gap-2.5 p-3 rounded-xl bg-[#FF453A]/10 border border-[#FF453A]/20 text-[#FF453A] text-xs">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
               <span>{errorMessage}</span>
             </div>
@@ -242,96 +237,90 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {/* Verification Notice */}
           {verificationNotice && (
-            <div className="mb-4 flex items-start gap-2.5 p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs leading-relaxed">
-              <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5 text-emerald-400" />
+            <div className="mb-4 flex items-start gap-2.5 p-3.5 rounded-xl bg-[#34C759]/10 border border-[#34C759]/20 text-[#34C759] text-xs leading-relaxed">
+              <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold">Check your email!</p>
-                <p className="text-slate-300 mt-0.5">{verificationNotice}</p>
+                <p className="font-semibold">Check your email</p>
+                <p className="text-white/80 mt-0.5">{verificationNotice}</p>
               </div>
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             {mode === "signup" && (
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                <label className="block text-xs font-medium text-white/70 mb-1">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
+                  <User className="absolute left-3.5 top-2.5 h-4 w-4 text-white/40" />
                   <input
                     type="text"
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Alex Johnson"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500 transition-colors"
+                    placeholder="Steve Jobs"
+                    className="w-full apple-input pl-10 pr-3.5 py-2 text-xs"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-medium text-white/70 mb-1">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
+                <Mail className="absolute left-3.5 top-2.5 h-4 w-4 text-white/40" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500 transition-colors"
+                  placeholder="name@apple.com"
+                  className="w-full apple-input pl-10 pr-3.5 py-2 text-xs"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs font-medium text-white/70 mb-1">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-3 h-4 w-4 text-slate-500" />
+                <Lock className="absolute left-3.5 top-2.5 h-4 w-4 text-white/40" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={mode === "signup" ? "At least 6 characters" : "Your password"}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2.5 text-sm text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500 transition-colors"
+                  placeholder={mode === "signup" ? "At least 6 characters" : "••••••••"}
+                  className="w-full apple-input pl-10 pr-3.5 py-2 text-xs"
                 />
               </div>
             </div>
 
-            {/* Registration Destination Settings */}
+            {/* Optional Alert Channels on Signup */}
             {mode === "signup" && (
-              <div className="pt-2 border-t border-slate-800/80 space-y-3.5">
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold text-slate-200">
-                      Alert Channels (Optional)
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsGuideOpen(true)}
-                      className="text-[11px] text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1 hover:underline"
-                    >
-                      <HelpCircle className="h-3 w-3" />
-                      Setup Guide
-                    </button>
-                  </div>
-                  <p className="text-[11px] text-slate-400">
-                    PromptFlow sends instant alerts to these destinations when conditions trigger.
-                  </p>
+              <div className="pt-2 border-t border-white/[0.08] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-white/80">
+                    Push Alert Channels (Optional)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsGuideOpen(true)}
+                    className="text-[11px] text-[#007AFF] hover:underline flex items-center gap-1 font-medium"
+                  >
+                    <HelpCircle className="h-3 w-3" />
+                    Setup Guide
+                  </button>
                 </div>
 
-                {/* Telegram */}
                 <div>
-                  <label className="flex items-center gap-1.5 text-xs font-medium text-slate-300 mb-1">
-                    <Send className="h-3.5 w-3.5 text-sky-400" />
+                  <label className="flex items-center gap-1 text-[11px] text-[#A1A1A6] mb-1">
+                    <Send className="h-3 w-3 text-[#007AFF]" />
                     Telegram Chat ID
                   </label>
                   <input
@@ -339,17 +328,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={telegramChatId}
                     onChange={(e) => setTelegramChatId(e.target.value)}
                     placeholder="e.g. 6312393356"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500"
+                    className="w-full apple-input px-3 py-1.5 text-xs"
                   />
-                  <span className="text-[10px] text-slate-500 block mt-1">
-                    Message <strong>@userinfobot</strong> on Telegram to get your ID.
-                  </span>
                 </div>
 
-                {/* Discord */}
                 <div>
-                  <label className="flex items-center gap-1.5 text-xs font-medium text-slate-300 mb-1">
-                    <Discord className="h-3.5 w-3.5 text-indigo-400" />
+                  <label className="flex items-center gap-1 text-[11px] text-[#A1A1A6] mb-1">
+                    <Discord className="h-3 w-3 text-[#5856D6]" />
                     Discord Webhook URL
                   </label>
                   <input
@@ -357,55 +342,52 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     value={discordWebhookUrl}
                     onChange={(e) => setDiscordWebhookUrl(e.target.value)}
                     placeholder="https://discord.com/api/webhooks/..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-sky-500"
+                    className="w-full apple-input px-3 py-1.5 text-xs"
                   />
-                  <span className="text-[10px] text-slate-500 block mt-1">
-                    From your Discord Channel Settings $\rightarrow$ Integrations $\rightarrow$ Webhooks.
-                  </span>
                 </div>
               </div>
             )}
 
-            {/* Submit Button */}
+            {/* Primary Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white shadow-lg shadow-sky-500/25 transition-all disabled:opacity-50"
+              className="w-full mt-3 apple-btn-primary py-2.5 px-4 text-xs font-medium gap-1.5 disabled:opacity-50 shadow-md"
             >
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   <span>Processing...</span>
                 </>
               ) : (
                 <>
-                  <span>{mode === "signin" ? "Sign In" : "Create Account & Start"}</span>
-                  <ArrowRight className="h-4 w-4" />
+                  <span>{mode === "signin" ? "Sign In" : "Create Account & Continue"}</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Footer toggle */}
-          <div className="mt-6 text-center text-xs text-slate-400">
+          {/* Mode Switch Footnote */}
+          <div className="mt-5 text-center text-xs text-[#A1A1A6]">
             {mode === "signin" ? (
               <p>
                 Don't have an account?{" "}
                 <button
                   type="button"
                   onClick={() => handleSwitchMode("signup")}
-                  className="text-sky-400 hover:underline font-semibold ml-1"
+                  className="text-[#007AFF] hover:underline font-medium ml-1"
                 >
                   Create one now
                 </button>
               </p>
             ) : (
               <p>
-                Already have an account?{" "}
+                Already registered?{" "}
                 <button
                   type="button"
                   onClick={() => handleSwitchMode("signin")}
-                  className="text-sky-400 hover:underline font-semibold ml-1"
+                  className="text-[#007AFF] hover:underline font-medium ml-1"
                 >
                   Sign in
                 </button>
@@ -422,4 +404,3 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     </div>
   );
 };
-

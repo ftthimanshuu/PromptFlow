@@ -19,7 +19,6 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
 
   const [config, setConfig] = useState<Record<string, any>>({ ...step.config });
 
-  // Keep state in sync whenever step changes
   useEffect(() => {
     if (step) {
       setConfig({ ...step.config });
@@ -46,33 +45,33 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-slate-900 border-l border-slate-800 h-full p-6 shadow-2xl overflow-y-auto flex flex-col justify-between">
+    <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-md animate-in fade-in duration-200 font-sans selection:bg-[#007AFF]/30 selection:text-white">
+      <div className="w-full max-w-md bg-[#141416] border-l border-white/[0.12] h-full p-6 sm:p-7 shadow-2xl overflow-y-auto flex flex-col justify-between text-[#F5F5F7]">
         <div>
           {/* Header */}
-          <div className="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+          <div className="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-6 text-left">
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-sky-400">
-                Step {step.step_id} Parameters
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-[#007AFF]">
+                Step {step.step_id} Parameter Inspector
               </span>
-              <h3 className="text-base font-bold text-white capitalize">
+              <h3 className="text-base font-bold text-white capitalize mt-0.5">
                 Configure {step.type.replace("_", " ")}
               </h3>
             </div>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              className="p-1.5 rounded-full text-white/50 hover:text-white hover:bg-white/[0.08] transition-colors"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4" />
             </button>
           </div>
 
-          <form id="step-edit-form" onSubmit={handleSubmit} className="space-y-5">
+          <form id="step-edit-form" onSubmit={handleSubmit} className="space-y-4 text-left">
             {/* Scrape Config Form */}
             {step.type === "scrape" && (
               <>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-medium text-white/70 mb-1">
                     Target Website URL
                   </label>
                   <input
@@ -81,14 +80,14 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     value={config.url || ""}
                     onChange={(e) => setConfig({ ...config, url: e.target.value })}
                     placeholder="https://example.com/notices"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
+                    className="w-full apple-input px-3 py-2 text-xs font-mono"
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">
-                    Public web page to scrape and analyze.
+                  <span className="text-[10px] text-white/40 mt-1 block">
+                    Public URL to fetch and evaluate.
                   </span>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-medium text-white/70 mb-1">
                     Max Scraped Characters
                   </label>
                   <input
@@ -97,10 +96,10 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     onChange={(e) =>
                       setConfig({ ...config, max_length: parseInt(e.target.value, 10) })
                     }
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
+                    className="w-full apple-input px-3 py-2 text-xs font-mono"
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">
-                    Default 10,000 characters. Prevents token overflow.
+                  <span className="text-[10px] text-white/40 mt-1 block">
+                    Default 10,000 characters to prevent token overflow.
                   </span>
                 </div>
               </>
@@ -110,7 +109,7 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
             {step.type === "ai_filter" && (
               <>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-medium text-white/70 mb-1">
                     Extraction Prompt
                   </label>
                   <textarea
@@ -119,11 +118,11 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     value={config.instruction || ""}
                     onChange={(e) => setConfig({ ...config, instruction: e.target.value })}
                     placeholder="e.g. Scan notices for exam schedules. Return found, title, and link."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
+                    className="w-full apple-input px-3 py-2 text-xs leading-relaxed"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-medium text-white/70 mb-1">
                     Expected JSON Keys (comma separated)
                   </label>
                   <input
@@ -136,10 +135,10 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                       })
                     }
                     placeholder="found, title, price, link"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
+                    className="w-full apple-input px-3 py-2 text-xs font-mono"
                   />
-                  <span className="text-[10px] text-slate-500 mt-1 block">
-                    Keys that the AI model must extract into a structured JSON object.
+                  <span className="text-[10px] text-white/40 mt-1 block">
+                    Structured keys extracted by Groq / Gemini models.
                   </span>
                 </div>
               </>
@@ -149,7 +148,7 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
             {step.type === "condition" && (
               <>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-medium text-white/70 mb-1">
                     Field Path
                   </label>
                   <input
@@ -158,17 +157,16 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     value={config.field || ""}
                     onChange={(e) => setConfig({ ...config, field: e.target.value })}
                     placeholder="step_2.found"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500 font-mono"
+                    className="w-full apple-input px-3 py-2 text-xs font-mono"
                   />
-                  {/* Quick Suggestions */}
                   <div className="mt-1.5 flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[10px] text-slate-500">Suggestions:</span>
+                    <span className="text-[10px] text-white/40">Suggestions:</span>
                     {["step_2.found", "step_2.price", "step_2.title"].map((s) => (
                       <button
                         key={s}
                         type="button"
                         onClick={() => setConfig({ ...config, field: s })}
-                        className="text-[10px] bg-slate-800 hover:bg-slate-700 text-sky-400 px-1.5 py-0.5 rounded border border-slate-700"
+                        className="text-[10px] bg-[#1C1C1E] hover:bg-white/[0.1] text-[#007AFF] px-2 py-0.5 rounded-full border border-white/[0.06]"
                       >
                         {s}
                       </button>
@@ -177,13 +175,13 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                    Operator
+                  <label className="block text-xs font-medium text-white/70 mb-1">
+                    Comparison Operator
                   </label>
                   <select
                     value={config.operator || "=="}
                     onChange={(e) => setConfig({ ...config, operator: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
+                    className="w-full apple-input px-3 py-2 text-xs"
                   >
                     <option value="==">== (Equals)</option>
                     <option value="!=">!= (Not Equals)</option>
@@ -196,7 +194,7 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-medium text-white/70 mb-1">
                     Comparison Target Value
                   </label>
                   <input
@@ -211,21 +209,21 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                       else setConfig({ ...config, value: val });
                     }}
                     placeholder="true"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
+                    className="w-full apple-input px-3 py-2 text-xs"
                   />
                   <div className="mt-1.5 flex items-center gap-1.5">
-                    <span className="text-[10px] text-slate-500">Quick sets:</span>
+                    <span className="text-[10px] text-white/40">Quick sets:</span>
                     <button
                       type="button"
                       onClick={() => setConfig({ ...config, value: true })}
-                      className="text-[10px] bg-slate-800 text-emerald-400 px-2 py-0.5 rounded border border-slate-700"
+                      className="text-[10px] bg-[#1C1C1E] text-[#34C759] px-2 py-0.5 rounded-full border border-white/[0.06]"
                     >
                       true
                     </button>
                     <button
                       type="button"
                       onClick={() => setConfig({ ...config, value: false })}
-                      className="text-[10px] bg-slate-800 text-rose-400 px-2 py-0.5 rounded border border-slate-700"
+                      className="text-[10px] bg-[#1C1C1E] text-[#FF453A] px-2 py-0.5 rounded-full border border-white/[0.06]"
                     >
                       false
                     </button>
@@ -238,36 +236,35 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
             {step.type === "notify" && (
               <>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                  <label className="block text-xs font-medium text-white/70 mb-1">
                     Channel Destination
                   </label>
                   <select
                     value={config.channel || "telegram"}
                     onChange={(e) => setConfig({ ...config, channel: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500"
+                    className="w-full apple-input px-3 py-2 text-xs"
                   >
-                    <option value="telegram">Telegram (Bot Direct Message)</option>
                     <option value="discord">Discord (Channel Webhook)</option>
+                    <option value="telegram">Telegram (Bot Direct Message)</option>
                     <option value="email">Email (Direct to your inbox)</option>
                   </select>
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-semibold text-slate-300">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-medium text-white/70">
                       Message Template
                     </label>
-                    <span className="text-[10px] text-slate-500">Click variable to insert</span>
+                    <span className="text-[10px] text-white/40">Insert variable</span>
                   </div>
 
-                  {/* Variable Pills */}
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {["step_2.title", "step_2.price", "step_2.link", "step_1.url"].map((v) => (
                       <button
                         key={v}
                         type="button"
                         onClick={() => handleInsertVariable(v)}
-                        className="text-[10px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2 py-0.5 rounded border border-slate-700 transition-colors"
+                        className="text-[10px] bg-[#1C1C1E] hover:bg-white/[0.1] text-[#007AFF] px-2 py-0.5 rounded-full border border-white/[0.06]"
                       >
                         + {`{{${v}}}`}
                       </button>
@@ -279,8 +276,8 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
                     required
                     value={config.message || ""}
                     onChange={(e) => setConfig({ ...config, message: e.target.value })}
-                    placeholder="🚨 Alert: {{step_2.title}} is available!"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500 font-mono"
+                    placeholder="Alert: {{step_2.title}} is updated!"
+                    className="w-full apple-input px-3 py-2 text-xs leading-relaxed font-mono"
                   />
                 </div>
               </>
@@ -289,21 +286,21 @@ export const StepDrawer: React.FC<StepDrawerProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="pt-4 border-t border-slate-800 flex items-center justify-end gap-3">
+        <div className="pt-4 border-t border-white/[0.08] flex items-center justify-end gap-2.5">
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white"
+            className="apple-btn-secondary px-3.5 py-1.5 text-xs font-medium"
           >
             Cancel
           </button>
           <button
             type="submit"
             form="step-edit-form"
-            className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-semibold bg-sky-600 text-white hover:bg-sky-500 shadow-lg shadow-sky-600/20 transition-all"
+            className="apple-btn-primary px-4 py-1.5 text-xs font-medium gap-1.5"
           >
-            <Check className="h-4 w-4" />
-            Apply Changes
+            <Check className="h-3.5 w-3.5" />
+            <span>Apply Changes</span>
           </button>
         </div>
       </div>

@@ -33,116 +33,117 @@ export const IntegrationGuideModal: React.FC<IntegrationGuideModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-xl shadow-2xl relative overflow-hidden my-6">
-        {/* Accent Top Bar */}
-        <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-emerald-500" />
-
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-2xl p-4 overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-[#141416] border border-white/[0.12] rounded-[28px] w-full max-w-lg shadow-2xl relative overflow-hidden my-6 text-[#F5F5F7] font-sans">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors"
+          className="absolute top-5 right-5 text-white/50 hover:text-white p-2 rounded-full hover:bg-white/[0.08] transition-colors"
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4" />
         </button>
 
-        <div className="p-7">
+        <div className="p-6 md:p-8">
           {/* Header */}
-          <div className="mb-6">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/20 text-xs font-semibold mb-2">
-              <HelpCircle className="h-3.5 w-3.5" />
+          <div className="mb-6 text-left">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.06] text-white/80 border border-white/[0.08] text-xs font-medium mb-2.5">
+              <HelpCircle className="h-3 w-3 text-[#007AFF]" />
               <span>Step-by-Step Setup Guide</span>
             </div>
-            <h2 className="text-xl font-extrabold text-white">How to connect alert channels</h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Follow these simple 1-minute instructions to connect Telegram, Discord, or Email.
+            <h2 className="text-xl font-bold tracking-tight text-white">
+              Connect Alert Channels
+            </h2>
+            <p className="text-xs text-[#A1A1A6] mt-1">
+              Instructions for connecting Discord, Telegram, or Email notifications in 60 seconds.
             </p>
           </div>
 
-          {/* Channel Tabs */}
-          <div className="flex bg-slate-950 p-1 rounded-xl border border-slate-800 mb-6">
+          {/* Cupertino Segmented Tabs */}
+          <div className="flex bg-[#1C1C1E] p-1 rounded-full border border-white/[0.08] mb-6">
             <button
               type="button"
               onClick={() => setActiveTab("email")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-full transition-all ${
                 activeTab === "email"
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-white/60 hover:text-white"
               }`}
             >
-              <Mail className="h-3.5 w-3.5" />
-              Email (Instant)
+              <Mail className="h-3 w-3" />
+              <span>Email</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("telegram")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-full transition-all ${
                 activeTab === "telegram"
-                  ? "bg-sky-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-white/60 hover:text-white"
               }`}
             >
-              <Send className="h-3.5 w-3.5" />
-              Telegram (1 min)
+              <Send className="h-3 w-3" />
+              <span>Telegram</span>
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("discord")}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold rounded-lg transition-all ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 text-xs font-medium rounded-full transition-all ${
                 activeTab === "discord"
-                  ? "bg-indigo-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-white text-black font-semibold shadow-sm"
+                  : "text-white/60 hover:text-white"
               }`}
             >
-              <Discord className="h-3.5 w-3.5" />
-              Discord (1 min)
+              <Discord className="h-3 w-3" />
+              <span>Discord</span>
             </button>
           </div>
 
           {/* TAB 1: EMAIL */}
           {activeTab === "email" && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300">
-                <div className="flex items-center gap-2 font-bold text-sm mb-1">
-                  <ShieldCheck className="h-4 w-4 text-emerald-400" />
+            <div className="space-y-3.5 text-left text-xs">
+              <div className="p-4 rounded-2xl bg-[#34C759]/10 border border-[#34C759]/20 text-[#34C759]">
+                <div className="flex items-center gap-2 font-semibold text-xs mb-1">
+                  <ShieldCheck className="h-4 w-4 text-[#34C759]" />
                   <span>Zero Password Setup for Users</span>
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Users <strong>never</strong> need to provide an app password or email credentials. PromptFlow’s central platform server sends the alert directly <em>to</em> their email address!
+                <p className="text-white/80 leading-relaxed text-[11px]">
+                  Users <strong>never</strong> need to provide an app password. PromptFlow’s central verified SMTP server delivers notifications directly <em>to</em> their email address!
                 </p>
               </div>
 
-              <div className="space-y-3 text-xs text-slate-300">
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="h-6 w-6 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center shrink-0 text-xs">
+              <div className="space-y-2.5 text-[#F5F5F7]">
+                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
+                  <span className="h-5 w-5 rounded-full bg-black/50 text-[#34C759] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
                     1
                   </span>
                   <div>
-                    <strong className="text-white block mb-0.5">Enter your normal Email</strong>
-                    <span>Use the email address you signed up with or specify one in your profile settings.</span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="h-6 w-6 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center shrink-0 text-xs">
-                    2
-                  </span>
-                  <div>
-                    <strong className="text-white block mb-0.5">Select Email in your prompt</strong>
-                    <span>
-                      Prompt PromptFlow like: <em>"Check website XYZ daily and send summary to my email."</em>
+                    <strong className="text-white block mb-0.5">Use your Account Email</strong>
+                    <span className="text-white/60 text-[11px]">
+                      The email address you sign up with is automatically used as the default destination.
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                  <span className="h-6 w-6 rounded-full bg-slate-800 text-emerald-400 font-bold flex items-center justify-center shrink-0 text-xs">
+                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
+                  <span className="h-5 w-5 rounded-full bg-black/50 text-[#34C759] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
+                    2
+                  </span>
+                  <div>
+                    <strong className="text-white block mb-0.5">Prompt for Email Dispatch</strong>
+                    <span className="text-white/60 text-[11px]">
+                      Say: <em>"Check website daily and send highlights to my email."</em>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
+                  <span className="h-5 w-5 rounded-full bg-black/50 text-[#34C759] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
                     3
                   </span>
                   <div>
-                    <strong className="text-white block mb-0.5">Instant In-box Delivery</strong>
-                    <span>
-                      When the condition triggers, a styled HTML email arrives in your inbox with bulleted summaries.
+                    <strong className="text-white block mb-0.5">Instant Formatted Delivery</strong>
+                    <span className="text-white/60 text-[11px]">
+                      When the condition evaluates to true, an HTML email with clear bullet points arrives in your inbox.
                     </span>
                   </div>
                 </div>
@@ -152,75 +153,65 @@ export const IntegrationGuideModal: React.FC<IntegrationGuideModalProps> = ({
 
           {/* TAB 2: TELEGRAM */}
           {activeTab === "telegram" && (
-            <div className="space-y-3.5 text-xs text-slate-300">
-              <div className="p-3.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-300 text-xs flex items-center justify-between">
-                <span>Total time: <strong>45 seconds</strong>. Completely free.</span>
-                <span className="text-[10px] uppercase font-bold text-sky-400 bg-sky-500/20 px-2 py-0.5 rounded">
-                  Instant Push
+            <div className="space-y-3 text-left text-xs text-[#F5F5F7]">
+              <div className="p-3 rounded-xl bg-[#007AFF]/10 border border-[#007AFF]/20 text-[#007AFF] text-[11px] flex items-center justify-between">
+                <span>Setup time: <strong>45 seconds</strong>. Completely free.</span>
+                <span className="uppercase font-semibold bg-[#007AFF]/20 px-2 py-0.5 rounded-full text-[9px]">
+                  Direct Push
                 </span>
               </div>
 
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="h-6 w-6 rounded-full bg-slate-800 text-sky-400 font-bold flex items-center justify-center shrink-0 text-xs">
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
+                <span className="h-5 w-5 rounded-full bg-black/50 text-[#007AFF] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
                   1
                 </span>
                 <div className="flex-1">
                   <strong className="text-white block mb-0.5">Find your Telegram Chat ID</strong>
-                  <p className="text-slate-400 mb-2">
+                  <p className="text-white/60 text-[11px] mb-2">
                     Open the verified <strong>@userinfobot</strong> on Telegram and tap <strong>Start</strong>.
                   </p>
-                  <a
-                    href="https://t.me/userinfobot"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-semibold text-[11px] shadow-sm transition-all"
-                  >
-                    <span>Open @userinfobot</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href="https://t.me/userinfobot"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#007AFF] hover:bg-[#0A84FF] text-white font-medium text-[11px] transition-all"
+                    >
+                      <span>Open @userinfobot</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy("@userinfobot")}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/[0.08] hover:bg-white/[0.12] text-white/70 hover:text-white border border-white/[0.08] font-medium text-[11px] transition-all"
+                    >
+                      <Copy className="h-3 w-3" />
+                      <span>{copiedBot ? "Copied" : "Copy Name"}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="h-6 w-6 rounded-full bg-slate-800 text-sky-400 font-bold flex items-center justify-center shrink-0 text-xs">
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
+                <span className="h-5 w-5 rounded-full bg-black/50 text-[#007AFF] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
                   2
                 </span>
                 <div className="flex-1">
                   <strong className="text-white block mb-0.5">Copy the number next to `Id:`</strong>
-                  <p className="text-slate-400">
-                    The bot will reply with your profile info. Copy the numeric ID (e.g. <code className="text-sky-300 font-mono bg-slate-900 px-1.5 py-0.5 rounded">6312393356</code>).
+                  <p className="text-white/60 text-[11px]">
+                    Copy your numeric user ID (e.g. <code className="text-[#007AFF] font-mono bg-black/40 px-1.5 py-0.5 rounded">6312393356</code>).
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="h-6 w-6 rounded-full bg-slate-800 text-sky-400 font-bold flex items-center justify-center shrink-0 text-xs">
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
+                <span className="h-5 w-5 rounded-full bg-black/50 text-[#007AFF] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
                   3
                 </span>
                 <div className="flex-1">
-                  <strong className="text-white block mb-0.5">Start PromptFlow Notifier Bot</strong>
-                  <p className="text-slate-400 mb-2">
-                    Open our bot and click <strong>Start</strong> so Telegram gives it permission to message you.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => handleCopy("@userinfobot")}
-                    className="inline-flex items-center gap-1 text-[11px] text-slate-400 hover:text-white bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800"
-                  >
-                    <Copy className="h-3 w-3" />
-                    <span>{copiedBot ? "Copied!" : "Copy Bot Name"}</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="h-6 w-6 rounded-full bg-slate-800 text-sky-400 font-bold flex items-center justify-center shrink-0 text-xs">
-                  4
-                </span>
-                <div className="flex-1">
                   <strong className="text-white block mb-0.5">Paste into PromptFlow</strong>
-                  <p className="text-slate-400">
-                    Paste your Chat ID into the <strong>Telegram Chat ID</strong> field during sign up or in Settings. Done!
+                  <p className="text-white/60 text-[11px]">
+                    Paste your Chat ID into the <strong>Telegram Chat ID</strong> field in Settings or when signing up.
                   </p>
                 </div>
               </div>
@@ -229,58 +220,46 @@ export const IntegrationGuideModal: React.FC<IntegrationGuideModalProps> = ({
 
           {/* TAB 3: DISCORD */}
           {activeTab === "discord" && (
-            <div className="space-y-3.5 text-xs text-slate-300">
-              <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs flex items-center justify-between">
-                <span>Total time: <strong>60 seconds</strong>. Rich formatted embeds.</span>
-                <span className="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-500/20 px-2 py-0.5 rounded">
-                  Channel Alerts
+            <div className="space-y-3 text-left text-xs text-[#F5F5F7]">
+              <div className="p-3 rounded-xl bg-[#5856D6]/10 border border-[#5856D6]/20 text-[#5856D6] text-[11px] flex items-center justify-between">
+                <span>Setup time: <strong>60 seconds</strong>. Rich formatted embeds.</span>
+                <span className="uppercase font-semibold bg-[#5856D6]/20 px-2 py-0.5 rounded-full text-[9px]">
+                  Webhooks
                 </span>
               </div>
 
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="h-6 w-6 rounded-full bg-slate-800 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
+                <span className="h-5 w-5 rounded-full bg-black/50 text-[#5856D6] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
                   1
                 </span>
                 <div className="flex-1">
                   <strong className="text-white block mb-0.5">Open Discord Channel Settings</strong>
-                  <p className="text-slate-400">
-                    In your Discord server, hover over the text channel where you want notifications (e.g. <code>#alerts</code>) and click the <strong>⚙️ Gear icon</strong> (Edit Channel).
+                  <p className="text-white/60 text-[11px]">
+                    In your Discord server, hover over your target channel and click the <strong>⚙️ Gear icon</strong> (Edit Channel).
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="h-6 w-6 rounded-full bg-slate-800 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
+                <span className="h-5 w-5 rounded-full bg-black/50 text-[#5856D6] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
                   2
                 </span>
                 <div className="flex-1">
-                  <strong className="text-white block mb-0.5">Click "Integrations"</strong>
-                  <p className="text-slate-400">
-                    On the left sidebar, click <strong>Integrations</strong> $\rightarrow$ click <strong>Webhooks</strong>.
+                  <strong className="text-white block mb-0.5">Go to Integrations $\rightarrow$ Webhooks</strong>
+                  <p className="text-white/60 text-[11px]">
+                    Click <strong>Integrations</strong>, then click <strong>New Webhook</strong> and click <strong>Copy Webhook URL</strong>.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="h-6 w-6 rounded-full bg-slate-800 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
+              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-[#1C1C1E] border border-white/[0.06]">
+                <span className="h-5 w-5 rounded-full bg-black/50 text-[#5856D6] font-bold flex items-center justify-center shrink-0 text-[10px] border border-white/[0.08]">
                   3
                 </span>
                 <div className="flex-1">
-                  <strong className="text-white block mb-0.5">Create & Copy Webhook URL</strong>
-                  <p className="text-slate-400">
-                    Click <strong>New Webhook</strong> (name it "PromptFlow"), then click the <strong>Copy Webhook URL</strong> button.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3.5 rounded-xl bg-slate-950 border border-slate-800">
-                <span className="h-6 w-6 rounded-full bg-slate-800 text-indigo-400 font-bold flex items-center justify-center shrink-0 text-xs">
-                  4
-                </span>
-                <div className="flex-1">
                   <strong className="text-white block mb-0.5">Paste into PromptFlow</strong>
-                  <p className="text-slate-400">
-                    Paste the copied URL into the <strong>Discord Webhook URL</strong> field in PromptFlow. Done!
+                  <p className="text-white/60 text-[11px]">
+                    Paste the copied URL into the <strong>Discord Webhook URL</strong> field.
                   </p>
                 </div>
               </div>
@@ -288,16 +267,16 @@ export const IntegrationGuideModal: React.FC<IntegrationGuideModalProps> = ({
           )}
 
           {/* Footer Action */}
-          <div className="mt-6 pt-4 border-t border-slate-800 flex items-center justify-between">
-            <span className="text-[11px] text-slate-500">
-              Need help? All 3 destinations can be modified anytime in Settings.
+          <div className="mt-6 pt-4 border-t border-white/[0.08] flex items-center justify-between">
+            <span className="text-[11px] text-white/40">
+              All 3 destinations can be updated anytime in Settings.
             </span>
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-2 rounded-xl text-xs font-semibold bg-slate-800 text-white hover:bg-slate-700 transition-colors"
+              className="apple-btn-secondary px-4 py-1.5 text-xs font-medium"
             >
-              Got it, close
+              Close
             </button>
           </div>
         </div>

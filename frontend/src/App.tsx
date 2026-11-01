@@ -18,7 +18,7 @@ const INITIAL_WELCOME_MESSAGE: ChatMessage = {
   id: "welcome-1",
   role: "model",
   content:
-    "👋 Welcome to PromptFlow! Tell me what you'd like to monitor or automate in plain English (e.g., job postings, price drops, exam timetables, or tech releases). I will turn it into an executable, scheduled micro-pipeline.",
+    "👋 Welcome to PromptFlow. Describe what you'd like to monitor or automate in plain English (e.g. price drops, daily news headlines, or tech releases). I will compile it into an executable, scheduled micro-pipeline.",
   timestamp: new Date().toISOString(),
 };
 
@@ -63,9 +63,9 @@ export function App() {
           response.question ||
           "I've drafted your automation pipeline, but need a few details. Could you clarify?";
       } else {
-        assistantText = `✨ I have compiled your automation: "${
+        assistantText = `✨ I compiled your automation: "${
           response.pipeline?.title || "Web Monitor"
-        }". Review the step cards on the right and click "Test Run" to verify live!`;
+        }". Review the step cards on the right and click "Test Run" to verify live in the sandbox.`;
       }
 
       const assistantMsg: ChatMessage = {
@@ -137,7 +137,7 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 flex flex-col font-sans selection:bg-sky-500/30 selection:text-sky-200">
+    <div className="min-h-screen bg-black text-[#F5F5F7] flex flex-col font-sans selection:bg-[#007AFF]/30 selection:text-white">
       <Navbar
         currentView={currentView}
         setCurrentView={setCurrentView}
@@ -161,9 +161,9 @@ export function App() {
             />
           </div>
         ) : currentView === "studio" ? (
-          <div className="flex-1 grid grid-cols-12 overflow-hidden h-[calc(100vh-4rem)]">
+          <div className="flex-1 grid grid-cols-12 overflow-hidden h-[calc(100vh-4.25rem)]">
             {/* Left Column: Conversational AI Prompt (5 cols) */}
-            <div className="col-span-12 md:col-span-5 h-full overflow-hidden border-r border-slate-800/80">
+            <div className="col-span-12 md:col-span-5 h-full overflow-hidden border-r border-white/[0.08]">
               <ChatPanel
                 messages={messages}
                 onSendMessage={handleSendMessage}
