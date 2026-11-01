@@ -4,8 +4,20 @@ import type {
   PipelineSpecification,
 } from "../types/pipeline";
 
-const rawBase = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-const API_BASE = rawBase.endsWith("/api") ? rawBase : `${rawBase.replace(/\/+$/, "")}/api`;
+const isLocal =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1");
+
+const rawBase =
+  import.meta.env.VITE_API_URL ||
+  (isLocal
+    ? "http://localhost:5000/api"
+    : "https://promptflow-31p9.onrender.com/api");
+
+const API_BASE = rawBase.endsWith("/api")
+  ? rawBase
+  : `${rawBase.replace(/\/+$/, "")}/api`;
 
 const apiClient = axios.create({
   baseURL: API_BASE,
