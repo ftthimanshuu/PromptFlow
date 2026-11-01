@@ -27,6 +27,19 @@ export interface EvaluationResult {
 }
 
 /**
+ * Extracts a numeric value from numbers or currency-formatted strings (e.g. "£51.77" -> 51.77, "₹45,000" -> 45000)
+ */
+function parseNumeric(val: unknown): number {
+  if (typeof val === "number") return val;
+  if (val === null || val === undefined) return NaN;
+  if (typeof val === "string") {
+    const cleaned = val.replace(/[^0-9.-]+/g, "");
+    return parseFloat(cleaned);
+  }
+  return Number(val);
+}
+
+/**
  * Deterministically evaluates a condition config against the current execution context.
  */
 export function evaluateCondition(
@@ -56,7 +69,7 @@ export function evaluateCondition(
       if (typeof expectedValue === "boolean") {
         passed = String(actualValue).toLowerCase() === String(expectedValue).toLowerCase();
       } else if (typeof expectedValue === "number") {
-        passed = Number(actualValue) === expectedValue;
+        passed = parseNumeric(actualValue) === expectedValue;
       } else {
         passed = String(actualValue).trim().toLowerCase() === String(expectedValue).trim().toLowerCase();
       }
@@ -66,26 +79,26 @@ export function evaluateCondition(
       if (typeof expectedValue === "boolean") {
         passed = String(actualValue).toLowerCase() !== String(expectedValue).toLowerCase();
       } else if (typeof expectedValue === "number") {
-        passed = Number(actualValue) !== expectedValue;
+        passed = parseNumeric(actualValue) !== expectedValue;
       } else {
         passed = String(actualValue).trim().toLowerCase() !== String(expectedValue).trim().toLowerCase();
       }
       break;
 
     case ">":
-      passed = Number(actualValue) > Number(expectedValue);
+      passed = parseNumeric(actualValue) > parseNumeric(expectedValue);
       break;
 
     case "<":
-      passed = Number(actualValue) < Number(expectedValue);
+      passed = parseNumeric(actualValue) < parseNumeric(expectedValue);
       break;
 
     case ">=":
-      passed = Number(actualValue) >= Number(expectedValue);
+      passed = parseNumeric(actualValue) >= parseNumeric(expectedValue);
       break;
 
     case "<=":
-      passed = Number(actualValue) <= Number(expectedValue);
+      passed = parseNumeric(actualValue) <= parseNumeric(expectedValue);
       break;
 
     case "contains":
@@ -104,3 +117,4 @@ export function evaluateCondition(
     operator,
   };
 }
+

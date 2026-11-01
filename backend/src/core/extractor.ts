@@ -28,7 +28,8 @@ ${JSON.stringify(aiConfig.expected_fields)}
 RULES:
 1. Return ONLY a valid JSON object. Do not include markdown codeblocks or explanations.
 2. If a value cannot be found in the text, provide a sensible default (e.g. found: false, title: null, price: null).
-3. Do not invent or hallucinate information not present in the text.
+3. For numeric values like 'price' or 'count', prefer a raw number (e.g. 51.77 rather than '£51.77') without currency symbols.
+4. Do not invent or hallucinate information not present in the text.
 
 WEBPAGE TEXT:
 """
