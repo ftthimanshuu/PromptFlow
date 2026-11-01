@@ -263,16 +263,11 @@ Total Automation Types Tested: 10 | Passed: 10 | Success Rate: 100%
 
 ---
 
-## 📑 Project Documentation & Presentation Suite
+## 📑 Project Documentation
 
-| Resource | File | Purpose |
-| :--- | :--- | :--- |
-| **Comprehensive Technical Docs** | [`PROJECT_DOCUMENTATION.md`](./PROJECT_DOCUMENTATION.md) | Exhaustive 14-section architectural and implementation specification |
-| **Offline Printable PDF** | [`PROJECT_DOCUMENTATION.pdf`](./PROJECT_DOCUMENTATION.pdf) | Formatted offline PDF of the complete technical specification |
-| **Interview & Viva Defense Guide** | [`INTERVIEW_DEFENSE_GUIDE.md`](./INTERVIEW_DEFENSE_GUIDE.md) | 25 tough faculty questions with model answers + architectural tradeoffs |
-| **PowerPoint Presentation Deck** | [`PromptFlow_Presentation.pptx`](./PromptFlow_Presentation.pptx) | Complete 16:9 widescreen presentation deck with embedded speaker notes |
-| **Interactive HTML Slides** | [`PRESENTATION.html`](./PRESENTATION.html) | Browser slide presentation with fullscreen mode and notes drawer |
-| **Presentation Script Markdown** | [`PRESENTATION_DECK.md`](./PRESENTATION_DECK.md) | Verbatim speaker scripts and slide outlines |
+For a comprehensive architectural, database schema, state machine, and API breakdown, consult the official engineering specification:
+
+* 📖 **[`PROJECT_DOCUMENTATION.md`](./PROJECT_DOCUMENTATION.md)** — Complete 14-section architectural reference, execution engine mechanics, deterministic state machines, security firewall specifications, and deployment runbooks.
 
 ---
 

@@ -7,3 +7,10 @@ frontend/.env
 *.log
 .DS_Store
 .agents/
+
+# Offline personal materials & presentation files (local only, untracked)
+*.pdf
+*.pptx
+INTERVIEW*
+PRESENTATION*
+offline-materials/
