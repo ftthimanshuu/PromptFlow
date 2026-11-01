@@ -263,9 +263,16 @@ Total Automation Types Tested: 10 | Passed: 10 | Success Rate: 100%
 
 ---
 
-## 📑 Faculty Presentation Deck
-A complete 6-slide presentation deck with in-depth technical explanations, visual placement guides, and verbatim speaker scripts is available in:
-* [`PRESENTATION_DECK.md`](./PRESENTATION_DECK.md)
+## 📑 Project Documentation & Presentation Suite
+
+| Resource | File | Purpose |
+| :--- | :--- | :--- |
+| **Comprehensive Technical Docs** | [`PROJECT_DOCUMENTATION.md`](./PROJECT_DOCUMENTATION.md) | Exhaustive 14-section architectural and implementation specification |
+| **Offline Printable PDF** | [`PROJECT_DOCUMENTATION.pdf`](./PROJECT_DOCUMENTATION.pdf) | Formatted offline PDF of the complete technical specification |
+| **Interview & Viva Defense Guide** | [`INTERVIEW_DEFENSE_GUIDE.md`](./INTERVIEW_DEFENSE_GUIDE.md) | 25 tough faculty questions with model answers + architectural tradeoffs |
+| **PowerPoint Presentation Deck** | [`PromptFlow_Presentation.pptx`](./PromptFlow_Presentation.pptx) | Complete 16:9 widescreen presentation deck with embedded speaker notes |
+| **Interactive HTML Slides** | [`PRESENTATION.html`](./PRESENTATION.html) | Browser slide presentation with fullscreen mode and notes drawer |
+| **Presentation Script Markdown** | [`PRESENTATION_DECK.md`](./PRESENTATION_DECK.md) | Verbatim speaker scripts and slide outlines |
 
 ---
 

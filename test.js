@@ -12,8 +12,8 @@
  * 9. Resource Capacity Governance (5 Active Automations Quota)
  */
 
-const API_BASE = "http://localhost:5000/api";
-const FRONTEND_BASE = "http://localhost:5173";
+const API_BASE = process.env.API_BASE || "https://promptflow-31p9.onrender.com/api";
+const FRONTEND_BASE = process.env.FRONTEND_BASE || "https://prompt-flow-ebon.vercel.app";
 
 async function runTestSuite() {
   console.log("================================================================================");
