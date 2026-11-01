@@ -98,22 +98,37 @@ async function compileWithGroq(
     },
   ];
 
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    messages,
-    response_format: { type: "json_object" },
-    temperature: 0.2,
-  });
+  const groqModels = [
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.8-27b",
+    "llama-3.3-70b-versatile",
+  ];
 
-  const rawText = completion.choices[0]?.message?.content?.trim() || "";
-  const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-  return JSON.parse(sanitized);
+  for (const model of groqModels) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model,
+        messages,
+        response_format: { type: "json_object" },
+        temperature: 0.2,
+      });
+
+      const rawText = completion.choices[0]?.message?.content?.trim() || "";
+      const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      return JSON.parse(sanitized);
+    } catch (err: any) {
+      console.warn(`[COMPILER] Groq model ${model} failed:`, err.message);
+    }
+  }
+
+  throw new Error("All Groq models failed.");
 }
 
 /**
  * Compiles a natural language user prompt into an executable pipeline JSON.
  * Supports multi-turn conversational context via chatHistory.
- * Uses Groq (ultra-fast Llama 3.3 70B) or Gemini (3.5 Flash) with seamless automatic failover.
+ * Uses Groq (ultra-fast GPT-OSS-120B / Qwen) or Gemini with seamless automatic failover.
  */
 export async function compilePrompt(
   prompt: string,
@@ -122,7 +137,7 @@ export async function compilePrompt(
   // Strategy 1: If Groq API Key is configured, use Groq (blazing fast, ~300ms, zero 503 errors)
   if (config.GROQ_API_KEY) {
     try {
-      console.log("[COMPILER] Compiling via Groq (llama-3.3-70b-versatile)...");
+      console.log("[COMPILER] Compiling via Groq...");
       const result = await compileWithGroq(prompt, chatHistory, config.GROQ_API_KEY);
       return result;
     } catch (groqErr: any) {

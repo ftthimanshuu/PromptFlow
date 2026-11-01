@@ -36,19 +36,34 @@ ${scrapedText}
 """
 `;
 
-  const completion = await groq.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
-    messages: [
-      { role: "system", content: "You are a precise JSON-only semantic web extraction engine." },
-      { role: "user", content: prompt },
-    ],
-    response_format: { type: "json_object" },
-    temperature: 0.1,
-  });
+  const groqModels = [
+    "openai/gpt-oss-120b",
+    "openai/gpt-oss-20b",
+    "qwen/qwen3.8-27b",
+    "llama-3.3-70b-versatile",
+  ];
 
-  const rawText = completion.choices[0]?.message?.content?.trim() || "";
-  const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-  return JSON.parse(sanitized);
+  for (const model of groqModels) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model,
+        messages: [
+          { role: "system", content: "You are a precise JSON-only semantic web extraction engine." },
+          { role: "user", content: prompt },
+        ],
+        response_format: { type: "json_object" },
+        temperature: 0.1,
+      });
+
+      const rawText = completion.choices[0]?.message?.content?.trim() || "";
+      const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      return JSON.parse(sanitized);
+    } catch (err: any) {
+      console.warn(`[EXTRACTOR] Groq model ${model} failed:`, err.message);
+    }
+  }
+
+  throw new Error("All Groq extraction models failed.");
 }
 
 /**
