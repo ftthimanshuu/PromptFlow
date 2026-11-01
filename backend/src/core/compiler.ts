@@ -54,7 +54,10 @@ RULES:
    - Set status to "complete".
    - Default schedule_cron to "0 9 * * *" (daily at 9 AM) if frequency wasn't mentioned.
    - Default channel to "telegram" if not specified.
-4. Output MUST be valid JSON conforming to this schema:
+4. MULTI-TURN MEMORY INTEGRATION:
+   - When the user supplies a missing value in a follow-up turn (e.g., providing a URL, threshold, or keyword), you MUST MERGE it with the goals stated in previous conversation turns.
+   - For example: If turn 1 asked "Alert me if gold drops below 75000" and turn 2 provides "https://goldprice.org", the compiled pipeline MUST have url: "https://goldprice.org" AND condition: { field: "step_2.price", operator: "<", value: 75000 }. Never drop parameters from prior turns.
+5. Output MUST be valid JSON conforming to this schema:
 {
   "status": "complete" | "incomplete",
   "question": "Clarification question if incomplete, otherwise null",
