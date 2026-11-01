@@ -82,43 +82,48 @@ export async function compilePrompt(
   const apiKey = config.GEMINI_API_KEY;
 
   if (!apiKey) {
-    // Provide a mocked compiler fallback if API key is not yet set up
     console.warn("[COMPILER FALLBACK] GEMINI_API_KEY not set. Using smart heuristic mock.");
     return mockCompile(prompt);
   }
 
+  const modelCandidates = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-flash-latest"];
   const genAI = new GoogleGenerativeAI(apiKey);
-  const model = genAI.getGenerativeModel({
-    model: "gemini-1.5-flash",
-    systemInstruction: COMPILER_SYSTEM_PROMPT,
-    generationConfig: {
-      responseMimeType: "application/json",
-      temperature: 0.2,
-    },
-  });
 
-  // Construct Gemini multi-turn chat history format
   const formattedHistory = chatHistory.map((msg) => ({
     role: msg.role === "user" ? "user" : "model",
     parts: [{ text: msg.content }],
   }));
 
-  const chat = model.startChat({
-    history: formattedHistory,
-  });
+  for (const modelName of modelCandidates) {
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        systemInstruction: COMPILER_SYSTEM_PROMPT,
+        generationConfig: {
+          responseMimeType: "application/json",
+          temperature: 0.2,
+        },
+      });
 
-  const response = await chat.sendMessage(prompt);
-  const rawText = response.response.text().trim();
+      const chat = model.startChat({
+        history: formattedHistory,
+      });
 
-  try {
-    const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
-    const parsed: CompileResult = JSON.parse(sanitized);
-    return parsed;
-  } catch (err: any) {
-    throw new Error(
-      `Failed to parse Gemini compiler output: ${err.message}. Raw output: ${rawText.substring(0, 200)}`
-    );
+      const response = await chat.sendMessage(prompt);
+      const rawText = response.response.text().trim();
+
+      const sanitized = rawText.replace(/^```json\s*/, "").replace(/\s*```$/, "");
+      const parsed: CompileResult = JSON.parse(sanitized);
+      return parsed;
+    } catch (err: any) {
+      console.warn(`[COMPILER] Model ${modelName} call failed:`, err.message);
+      // Try next candidate
+    }
   }
+
+  // Graceful fallback if Google API is temporarily overloaded (503 / 404 / 429)
+  console.warn("[COMPILER] All Gemini models temporarily unavailable. Using heuristic fallback.");
+  return mockCompile(prompt);
 }
 
 /**
@@ -202,3 +207,4 @@ function mockCompile(prompt: string): CompileResult {
     },
   };
 }
+
